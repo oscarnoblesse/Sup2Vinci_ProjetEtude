@@ -1,0 +1,8 @@
+services:
+  toolkit:
+    build: .
+    volumes:
+      - .:/app
+    tty: true
+    stdin_open: true
+    command: /bin/bash -c "python src/main.py"
