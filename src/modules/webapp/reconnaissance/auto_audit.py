@@ -74,6 +74,7 @@ class Module(BaseModule):
             console.print("\n[bold yellow][*] Step 2: No web ports found. Skipping Gobuster.[/bold yellow]")
 
         # Step 3: Nmap Vulnerability Scan
+        vuln_findings = []
         if open_ports:
             console.print("\n[bold yellow][*] Step 3: Vulnerability Scanning (Nmap NSE)[/bold yellow]")
             ports_str = ",".join(open_ports)
@@ -84,11 +85,29 @@ class Module(BaseModule):
             
             report_data.append("\n[VULNERABILITY SCAN]\n")
             report_data.append(vuln_output)
+            
+            # Parse vulnerabilities
+            vuln_findings = self.parse_nmap_vulns(vuln_output)
         else:
              console.print("\n[bold yellow][*] Step 3: No open ports. Skipping Vuln Scan.[/bold yellow]")
 
-        # Step 4: Report Generation
-        console.print("\n[bold yellow][*] Step 4: Generating Report[/bold yellow]")
+        # Step 4: Vulnerability Summary
+        if vuln_findings:
+            console.print("\n[bold red][!] ACTIONABLE VULNERABILITIES FOUND:[/bold red]")
+            report_data.append("\n" + "="*40 + "\n[ACTIONABLE VULNERABILITIES]\n" + "="*40 + "\n")
+            
+            for vuln in vuln_findings:
+                summary = f"[*] {vuln['id']} - {vuln['name']}"
+                console.print(f"[red]{summary}[/red]")
+                report_data.append(summary)
+                if vuln['info']:
+                    report_data.append(f"    Info: {vuln['info']}")
+        else:
+            console.print("\n[green][*] No obvious vulnerabilities detected by NSE scripts.[/green]")
+            report_data.append("\n[SUMMARY] No obvious vulnerabilities detected.")
+
+        # Step 5: Report Generation
+        console.print("\n[bold yellow][*] Step 5: Generating Report[/bold yellow]")
         report_file = f"audit_report_{target.replace('.', '_')}.txt"
         
         # Ensure we write where we can see it (mounted volume root or reports/ dir)
@@ -131,3 +150,52 @@ class Module(BaseModule):
                 port = line.split("/")[0].strip()
                 ports.append(port)
         return ports
+
+    def parse_nmap_vulns(self, nmap_output):
+        """Parses standard Nmap NSE output for vulnerability details"""
+        findings = []
+        current_vuln = {}
+        
+        lines = nmap_output.splitlines()
+        for idx, line in enumerate(lines):
+            line = line.strip()
+            
+            # Detect script start (approximate) or State: VULNERABLE
+            # Example: "|   State: VULNERABLE"
+            if "State: VULNERABLE" in line:
+                # Look backwards for the script name (usually the line starting with "| " or "|_")
+                # and explicitly look for ID/CVE
+                
+                # Check surrounding lines for context
+                # This is a basic parser; nmap XML output would be better but requires xml.etree
+                
+                # Simple strategy: If line says VULNERABLE, capture the previous lines as name
+                # and subsequent lines as details until blank or next script
+                
+                vuln_name = "Unknown Vulnerability"
+                # Try to find name in previous lines (heuristic)
+                for i in range(1, 10):
+                    prev = lines[idx - i].strip()
+                    if prev.startswith("| ") or prev.startswith("|_"):
+                        # remove format chars
+                        vuln_name = re.sub(r"^\|_?\s*", "", prev).split(":")[0]
+                        break
+                
+                # Try to find IDs in subsequent lines
+                vuln_id = "No ID"
+                details = ""
+                for i in range(1, 20):
+                    if idx + i >= len(lines): break
+                    next_line = lines[idx + i].strip()
+                    details += next_line + " "
+                    
+                    if "IDs:" in next_line:
+                        vuln_id = next_line.split("IDs:")[1].strip()
+                
+                findings.append({
+                    'name': vuln_name,
+                    'id': vuln_id,
+                    'info': details[:200] + "..." # Truncate detailed info
+                })
+                
+        return findings

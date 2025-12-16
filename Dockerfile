@@ -13,7 +13,14 @@ RUN apt-get update && apt-get install -y \
     nmap \
     gobuster \
     wget \
+    sqlmap \
     && rm -rf /var/lib/apt/lists/*
+
+# Install ExploitDB (SearchSploit)
+RUN git clone https://github.com/offensive-security/exploitdb.git /opt/exploitdb \
+    && ln -s /opt/exploitdb/searchsploit /usr/local/bin/searchsploit \
+    && cp -n /opt/exploitdb/.searchsploit_rc ~/ 2>/dev/null || true
+
 
 # Setup Wordlists
 COPY wordlists/ /usr/share/wordlists/

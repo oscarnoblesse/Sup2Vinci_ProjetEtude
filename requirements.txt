@@ -1,3 +1,4 @@
 rich
 prompt_toolkit
 requests
+paramiko
