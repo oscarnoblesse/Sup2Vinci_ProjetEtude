@@ -433,9 +433,9 @@ class Module(BaseModule):
     def run_wpscan(self, url):
         """Runs WPScan against the target"""
         # --enumerate u: User enumeration
-        # --no-update: Don't update db (slow/fails in docker sometimes)
         # --disable-tls-checks: Ignore SSL errors
-        cmd = f"wpscan --url {url} --no-update --disable-tls-checks --enumerate u"
+        # Removing --no-update to ensure DB runs at least once
+        cmd = f"wpscan --url {url} --disable-tls-checks --enumerate u"
         
         console.print(f"[blue]Running: {cmd}[/blue]")
         # WPScan writes progress to stderr mostly, finding to stdout
