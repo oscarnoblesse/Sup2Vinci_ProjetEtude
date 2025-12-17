@@ -1,8 +1,10 @@
 FROM python:3.11-slim
 
 # Prevent Python from writing pyc files and buffering stdout/stderr
+# Prevent Python from writing pyc files and buffering stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV TERM=xterm-256color
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -20,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libcurl4-openssl-dev \
     openssh-client \
+    libreadline-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure SSH to accept legacy algorithms (for Hydra/Paramiko against old targets)
@@ -32,10 +35,6 @@ RUN mkdir -p /root/.ssh && \
 # Install WPScan
 RUN gem install wpscan && wpscan --update
 
-# Install ExploitDB (SearchSploit)
-RUN git clone https://github.com/offensive-security/exploitdb.git /opt/exploitdb \
-    && ln -s /opt/exploitdb/searchsploit /usr/local/bin/searchsploit \
-    && cp -n /opt/exploitdb/.searchsploit_rc ~/ 2>/dev/null || true
 
 # Install Nikto (from Git)
 RUN git clone https://github.com/sullo/nikto.git /opt/nikto \

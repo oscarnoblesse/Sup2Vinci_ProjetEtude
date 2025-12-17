@@ -40,20 +40,29 @@ class Module(BaseModule):
             
         console.print(f"[bold green][+] Target Resolved: {target_ip} ({target_domain if target_domain else 'No Domain'})[/bold green]")
 
-        report_data = []
-        report_data.append(f"Audit Report for {raw_target} ({target_ip})")
-        report_data.append("="*40 + "\n")
+        # --- Report Sections ---
+        summary_section = []
+        vuln_section = []
+        auth_section = []
+        recon_section = []
+        raw_output_section = []
+        
+        summary_section.append(f"# Audit Report for {raw_target} ({target_ip})")
+        summary_section.append(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        summary_section.append("-" * 40)
 
         # Step 1: Nmap Fast Scan
         console.print("\n[bold yellow][*] Step 1: Fast Nmap Scan (Discovery)[/bold yellow]")
         nmap_cmd = f"nmap -F {target_ip}"
         nmap_output, _ = self.run_command(nmap_cmd)
         
-        report_data.append("\n[NMAP FAST SCAN]\n")
-        report_data.append(nmap_output)
+        raw_output_section.append("\n## [Raw] Nmap Fast Scan\n")
+        raw_output_section.append(nmap_output)
 
         open_ports = self.extract_open_ports(nmap_output)
-        console.print(f"[green][+] Found {len(open_ports)} open ports: {', '.join(open_ports)}[/green]")
+        port_msg = f"Found {len(open_ports)} open ports: {', '.join(open_ports)}"
+        console.print(f"[green][+] {port_msg}[/green]")
+        summary_section.append(f"\n## Network Summary\n- **Open Ports**: {', '.join(open_ports) if open_ports else 'None'}")
         
         if review: Prompt.ask("\nPress Enter to proceed to Web Enumeration...")
 
@@ -65,12 +74,11 @@ class Module(BaseModule):
             
             # Decide URL base (http vs https - heuristic)
             protocol = "https" if '443' in web_ports else "http"
-            # Use domain if available for vhosts, otherwise IP
             base_host = target_domain if target_domain else target_ip
             url = f"{protocol}://{base_host}"
             
             console.print(f"  -> Target URL: {url}")
-            report_data.append("\n[WEB ENUMERATION]\n")
+            recon_section.append(f"\n## Web Reconnaissance ({url})\n")
             
             # 2a. Gobuster
             console.print("\n[cyan]--- Gobuster Directory Scan ---[/cyan]")
@@ -80,7 +88,13 @@ class Module(BaseModule):
             else:
                  gobuster_cmd = f"gobuster dir -u {url} -w {wordlist} -t 20 --no-error"
                  go_out, _ = self.run_command(gobuster_cmd)
-                 report_data.append(f"--- Gobuster ---\n{go_out}\n")
+                 raw_output_section.append(f"\n## [Raw] Gobuster\n{go_out}\n")
+                 
+                 # Extract interesting findings for Recon section
+                 hits = [line for line in go_out.splitlines() if "Status: 200" in line or "Status: 301" in line]
+                 if hits:
+                     recon_section.append("### Interesting Directories:")
+                     for h in hits: recon_section.append(f"- {h.strip()}")
 
             # 2b. CMS Scan (WPScan vs Nikto)
             console.print("\n[cyan]--- CMS/Web Server Scan ---[/cyan]")
@@ -88,23 +102,33 @@ class Module(BaseModule):
             is_wp = self.detect_wordpress(url)
             if is_wp:
                 console.print("[bold green][!] WordPress detected! Switching to WPScan.[/bold green]")
+                summary_section.append("- **CMS Detected**: WordPress")
                 wpscan_out = self.run_wpscan(url)
-                report_data.append(f"--- WPScan ---\n{wpscan_out}\n")
+                raw_output_section.append(f"\n## [Raw] WPScan\n{wpscan_out}\n")
+                
+                # Basic wp parse
+                if "[!]" in wpscan_out:
+                    vuln_section.append("\n### WPScan Potential Issues")
+                    for line in wpscan_out.splitlines():
+                        if "[!]" in line: vuln_section.append(f"- {line.strip()}")
             else:
                 console.print("[blue]Not WordPress. Running Nikto...[/blue]")
                 
                 import shutil
                 if shutil.which("nikto") is None:
-                    msg = "[red]Error: 'nikto' binary not found in PATH.[/red]\n[yellow]Please rebuild the Docker image to install it:[/yellow]\n[bold]docker-compose build --no-cache[/bold]"
-                    console.print(msg)
-                    report_data.append(f"--- Nikto ---\n{msg}\n")
+                    msg = "Nikto not found. Rebuild docker."
+                    console.print(f"[red]{msg}[/red]")
                 else:
-                    # Speed optimization:
-                    # -Tuning 123b: Interesting files, Misconfigs, Info Disclosure, Software ID
-                    # -maxtime 600s: Limit scan to 10 minutes max
                     nikto_cmd = f"nikto -h {url} -Tuning 123b -maxtime 10m"
                     nikto_out, _ = self.run_command(nikto_cmd)
-                    report_data.append(f"--- Nikto ---\n{nikto_out}\n")
+                    raw_output_section.append(f"\n## [Raw] Nikto\n{nikto_out}\n")
+                    
+                    # Add Nikto findings to vuln section if critical
+                    if "+ " in nikto_out:
+                         recon_section.append("\n### Nikto Highlights:")
+                         for line in nikto_out.splitlines():
+                             if "+ " in line and ("OSVDB" in line or "Citrix" in line or "Vulnerable" in line):
+                                 recon_section.append(f"- {line.strip()}")
 
         else:
             console.print("\n[bold yellow][*] Step 2: No web ports found. Skipping Web Enum.[/bold yellow]")
@@ -121,8 +145,9 @@ class Module(BaseModule):
             vuln_cmd = f"nmap -p {ports_str} --script vuln -sV {target_ip}"
             vuln_output, _ = self.run_command(vuln_cmd)
             
-            report_data.append("\n[VULNERABILITY SCAN]\n")
-            report_data.append(vuln_output)
+            raw_output_section.append("\n## [Raw] Nmap Vulnerability Scan\n")
+            # Collapsible Block for Scan
+            raw_output_section.append(f"<details>\n<summary>Click to view full Nmap Output</summary>\n\n```\n{vuln_output}\n```\n</details>\n")
             
             # Parse vulnerabilities
             vuln_findings = self.parse_nmap_vulns(vuln_output)
@@ -132,42 +157,75 @@ class Module(BaseModule):
                 console.print("\n[bold yellow][*] Step 4: SSH Audit & Exploitation[/bold yellow]")
                 ssh_report = self.ssh_workflow(target_ip)
                 if ssh_report:
-                    report_data.append("\n[SSH AUDIT]\n")
-                    report_data.append(ssh_report)
+                    auth_section.append("\n## SSH Audit & Compromise Attempt\n")
+                    auth_section.append(ssh_report)
+                    
+                    # Capture credentials if successful
+                    if "Credentials Valid!" in ssh_report or "HYDRA SUCCESS" in ssh_report:
+                         summary_section.append("- **[CRITICAL] SSH ACCESS CONFIRMED**")
         else:
              console.print("\n[bold yellow][*] Step 3: No open ports. Skipping Vuln Scan.[/bold yellow]")
 
-        # Step 5: Vulnerability Summary
+        # Step 5: Vulnerability Summary processing
         if vuln_findings:
             console.print("\n[bold red][!] ACTIONABLE VULNERABILITIES FOUND:[/bold red]")
-            report_data.append("\n" + "="*40 + "\n[ACTIONABLE VULNERABILITIES]\n" + "="*40 + "\n")
+            vuln_section.insert(0, "\n## [CRITICAL] CONFIRMED VULNERABILITIES")
             
             for vuln in vuln_findings:
                 summary = f"[*] {vuln['id']} - {vuln['name']}"
                 console.print(f"[red]{summary}[/red]")
-                report_data.append(summary)
-                if vuln['info']:
-                    report_data.append(f"    Info: {vuln['info']}")
+                
+                details = f"### {vuln['name']} ({vuln['id']})\n- **Info**: {vuln['info']}\n"
+                vuln_section.append(details)
+                
+                # Add short summary to Executive Summary
+                summary_section.append(f"- **[VULN]** {vuln['name']} ({vuln['id']})")
         else:
             console.print("\n[green][*] No obvious vulnerabilities detected by NSE scripts.[/green]")
-            report_data.append("\n[SUMMARY] No obvious vulnerabilities detected.")
+            vuln_section.append("\n## Vulnerabilities\n- No Critical CVEs detected by Nmap NSE (Standard Scripts).")
 
-        # Step 6: Report Generation
+        # Step 6: Generating Report
         console.print("\n[bold yellow][*] Step 6: Generating Report[/bold yellow]")
-        report_file = f"audit_report_{target_ip.replace('.', '_')}.txt"
         
-        # Ensure we write where we can see it (mounted volume root or reports/ dir)
-        # Assuming run from /app/src, let's write to /app (project root)
-        output_path = os.path.join("/app", report_file)
+        final_report_content = []
+        final_report_content.extend(summary_section)
+        final_report_content.append("\n" + "="*40 + "\n")
+        final_report_content.extend(vuln_section)
+        final_report_content.append("\n" + "="*40 + "\n")
+        final_report_content.extend(auth_section)
+        final_report_content.append("\n" + "="*40 + "\n")
+        final_report_content.extend(recon_section)
+        final_report_content.append("\n" + "="*40 + "\n")
+        final_report_content.extend(raw_output_section)
+        
+        report_file = f"audit_report_{target_ip.replace('.', '_')}.md"
+        
+        # Organize reports in a dedicated folder
+        reports_dir = os.path.join("/app", "reports")
+        if not os.path.exists(reports_dir):
+            os.makedirs(reports_dir, exist_ok=True)
+            # Try to fix dir permissions too
+            try: os.chmod(reports_dir, 0o777)
+            except: pass
+            
+        output_path = os.path.join(reports_dir, report_file)
         
         try:
             with open(output_path, "w") as f:
-                f.write("\n".join(report_data))
-            console.print(f"[bold green][+] Report saved to: {output_path}[/bold green]")
+                f.write("\n".join(final_report_content))
+            
+            # CRITICAL: Fix permissions so Linux host user can read/write/delete (rw-rw-rw-)
+            try:
+                os.chmod(output_path, 0o666)
+            except Exception as ex:
+                console.print(f"[yellow]Warning: Could not set file permissions: {ex}[/yellow]")
+
+            console.print(f"[bold green][+] Report saved to: reports/{report_file}[/bold green]")
+            console.print(f"[dim](Accessible on your host machine in the 'reports' folder)[/dim]")
         except Exception as e:
             console.print(f"[red]Failed to save report: {e}[/red]")
 
-        console.print(Panel("Audit Complete!", style="bold green"))
+        console.print(Panel("Audit Complete! check report for details.", style="bold green"))
 
     def validate_and_resolve(self, target):
         """
@@ -217,7 +275,58 @@ class Module(BaseModule):
         """Interactive SSH Audit Logic"""
         console.print(Panel(f"SSH detected on {target_ip}. Starting credential check...", style="blue"))
         
+        # 0. Check SSH Version for CVE-2018-15473
+        ssh_banner = self.grab_ssh_banner(target_ip)
+        console.print(f"[*] SSH Banner: {ssh_banner}")
+        
+        user = ""
+        password = ""
+        
+        # Heuristic version check
+        is_vulnerable = False
+        if "OpenSSH" in ssh_banner:
+            try:
+                # Example: SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.10
+                ver_str = ssh_banner.split("OpenSSH_")[1].split(" ")[0].split("p")[0]
+                version = float(ver_str)
+                if version < 7.7:
+                    is_vulnerable = True
+                    console.print(f"[bold red][!] Target runs OpenSSH {version} (< 7.7) -> Potentially Vulnerable to User Enum (CVE-2018-15473)[/bold red]")
+            except:
+                pass
+
         user = Prompt.ask("Do you have a username? (Leave empty if no)", default="")
+        
+        # 1. User Enum Trigger
+        if not user and is_vulnerable:
+             if Prompt.ask("No username provided. Run CVE-2018-15473 User Enumeration?", choices=["y", "n"], default="y") == "y":
+                 from src.modules.tools.reconnaissance.ssh_user_enum import SSHUserEnumCVE
+                 wordlist = "/usr/share/wordlists/common.txt" # or ask user
+                 
+                 enum_tool = SSHUserEnumCVE(target_ip)
+                 found_users = enum_tool.run(wordlist)
+                 
+                 if found_users:
+                     console.print(f"[green]Users identified: {', '.join(found_users)}[/green]")
+                     if len(found_users) == 1:
+                         user = found_users[0]
+                         console.print(f"[*] Using discovered user: {user}")
+                     else:
+                         # Let user pick or attack all
+                         choice = Prompt.ask(f"Found {len(found_users)} users. Enter specific user to attack or leave empty to Attack ALL via Hydra:", default="")
+                         if choice:
+                             user = choice
+                         else:
+                             # We will pass the list file to hydra later? 
+                             # Simpler: Just pick the first one or ask to create a userlist?
+                             # Let's save them to a temp file for Hydra
+                             with open("/tmp/valid_users.txt", "w") as f:
+                                 f.write("\n".join(found_users))
+                             console.print("[*] Users saved for Hydra attack.")
+                             # Logic adjustment: run_hydra needs to handle a list if valid_users.txt exists and user is empty?
+                             # For now, let's stick to simple flow.
+                             user = "" # logic continues
+
         password = Prompt.ask("Do you have a password? (Leave empty if no)", default="", password=True)
         
         # Scenario 1: User + Password -> Try Login
@@ -230,7 +339,6 @@ class Module(BaseModule):
                 return self.perform_internal_audit(client, user, password)
             else:
                 console.print("[red]Login failed.[/red]")
-                # Fall through to brute force request if they want
         
         # Scenario 2, 3, 4: Brute Force Options
         if Prompt.ask("Do you want to run a Brute Force attack?", choices=["y", "n"], default="n") == "y":
@@ -244,24 +352,34 @@ class Module(BaseModule):
             
             # Construct Hydra Command logic
             if user:
-                # Have user, brute passwords (U + p)
-                # hydra -l user -P list ssh://ip
                 console.print(f"[*] Brute forcing PASSWORD for user '{user}'...")
                 return self.run_hydra(target_ip, user=user, pass_list=wordlist)
             
             elif password:
-                # Have pass, brute users (u + P)
-                # hydra -L list -p pass ssh://ip
                 console.print(f"[*] Brute forcing USERNAME for password '{password}'...")
                 return self.run_hydra(target_ip, password=password, user_list=wordlist)
             
             else:
-                # Have nothing, brute both (U + P)
-                # hydra -L list -P list ssh://ip
-                console.print("[*] Brute forcing BOTH username and password...")
-                return self.run_hydra(target_ip, user_list=wordlist, pass_list=wordlist)
+                # Check if we have our enumerated list
+                if os.path.exists("/tmp/valid_users.txt"):
+                     console.print("[*] using Enumerated Users List against Common Password List...")
+                     return self.run_hydra(target_ip, user_list="/tmp/valid_users.txt", pass_list=wordlist)
+                else:
+                     console.print("[*] Brute forcing BOTH username and password...")
+                     return self.run_hydra(target_ip, user_list=wordlist, pass_list=wordlist)
         else:
             return "User skipped brute force."
+            
+    def grab_ssh_banner(self, ip, port=22):
+        try:
+            sock = socket.socket()
+            sock.settimeout(2)
+            sock.connect((ip, int(port)))
+            banner = sock.recv(1024).decode().strip()
+            sock.close()
+            return banner
+        except:
+            return "Unknown"
 
     def try_ssh_login(self, ip, user, password):
         try:
@@ -277,111 +395,287 @@ class Module(BaseModule):
 
     def perform_internal_audit(self, client, user, password):
         """
-        Executes a suite of commands on the remote host via SSH.
-        Returns a formatted string report.
+        Executes a suite of commands on the remote host via SSH and generates a Rich Report.
         """
         results = {}
         
         # Command List (User provided + Extras)
         commands = {
             "System Info": "uname -a && uname -r && cat /etc/os-release",
-            "Hostname": "hostname",
             "Uptime": "uptime",
             "Current User": "whoami && id && groups",
-            "Sudo Privileges": f"echo '{password}' | sudo -S -l 2>/dev/null || sudo -l", # Try sudo -l with pass if needed
+            "Sudo Privileges": f"echo '{password}' | sudo -S -l 2>/dev/null || sudo -l", 
             "Network Config": "ip a && ip r",
             "Listening Ports": "ss -tulnp",
             "ARP Table": "arp -a",
             "Processes (Top 20 MEM)": "ps aux --sort=-%mem | head -n 20",
-            "SUID Binaries": "find / -type f -perm -4000 -ls 2>/dev/null",
-            "Crontab": "crontab -l",
-            "Installed Packages (Debian/RedHat)": "dpkg -l | head -n 20 || rpm -qa | head -n 20",
-            "Password Search (Var/WWW)": "grep -Ri 'password' /var/www 2>/dev/null | head -n 20",
-            "Password Search (Etc)": "grep -Ri 'password' /etc 2>/dev/null | head -n 20"
+            # Run from /tmp to avoid "Could not chdir" errors if home is broken
+            "SUID Binaries": "cd /tmp && find / -type f -perm -4000 -ls 2>/dev/null", 
+            # Check Global Crons + User Crons
+            "Crontab & Timers": "ls -la /etc/cron* /var/spool/cron* 2>/dev/null && cat /etc/crontab 2>/dev/null && crontab -l 2>/dev/null",
+            # Explicitly check for interpreters. Output format: /usr/bin/python Python 2.7.12
+            "Dev Tools & Interpreters": "for p in python python3 perl gcc g++ make nc netcat socat wget curl php ruby; do path=$(command -v $p); [ -n \"$path\" ] && echo \"$path $($p --version 2>&1 | head -n 1)\"; done",
+            "Installed Packages": "dpkg -l | head -n 20 || rpm -qa | head -n 20",
+            "Passwd File": "cat /etc/passwd | tail -n 10",
+            "Sensitive Files (Search)": "grep -Ri 'password' /var/www 2>/dev/null | head -n 10"
         }
         
         console.print("[yellow][*] Execution internal audit commands... Please wait.[/yellow]")
         
-        raw_report = []
+        raw_report_blocks = []
         
         for title, cmd in commands.items():
             console.print(f"  -> {title}...")
             try:
                 stdin, stdout, stderr = client.exec_command(cmd, timeout=10)
-                # sudo -S prompt handling is tricky non-interactively, handled by echo pass | sudo -S
                 out = stdout.read().decode('utf-8', errors='replace').strip()
                 err = stderr.read().decode('utf-8', errors='replace').strip()
                 
-                output = out if out else (f"[Error/Empty]: {err}" if err else "[Empty]")
+                output = out if out else (f"[Error]: {err}" if err else "[Empty]")
                 results[title] = output
                 
-                raw_report.append(f"\n[{title.upper()}]\n{output}\n")
+                # Format specific blocks
+                icon = "📄"
+                if "Sudo" in title: icon = "🔑"
+                if "SUID" in title: icon = "⚡"
+                if "Ports" in title: icon = "🌐"
+                if "Dev" in title: icon = "🛠️"
+                
+                # Collapsible for long outputs
+                if len(output.splitlines()) > 5:
+                    block = f"""
+### {icon} {title}
+<details>
+<summary>Click to view content</summary>
+
+```bash
+{output}
+```
+</details>
+"""
+                else:
+                    block = f"""
+### {icon} {title}
+```bash
+{output}
+```
+"""
+                raw_report_blocks.append(block)
                 
             except Exception as e:
                 results[title] = f"Error executing: {e}"
-                raw_report.append(f"\n[{title.upper()}] - FAILED\n{e}\n")
+                raw_report_blocks.append(f"### ❌ {title}\n**Failed**: {e}")
 
         # Close connection after audit
         client.close()
         
-        # SMART ANALYSIS
-        analysis_report = self.analyze_audit_results(results)
+        # SMART ANALYSIS with Color & SearchSploit
+        analysis_report = self.analyze_audit_results_colored(results)
+        exploit_report = self.check_software_exploits(results)
         
         # Combine
-        final_report = "--- INTERNAL SYSTEM AUDIT ---\n"
-        final_report += f"Credentials used: {user}:{password}\n\n"
+        final_report = "## 🕵️‍♂️ Post-Exploitation & System Audit\n"
+        final_report += f"> **Credentials Used**: `{user}` : `{password}`\n\n"
         final_report += analysis_report
-        final_report += "\n" + "="*40 + "\n[RAW COMMAND OUTPUTS]\n" + "="*40 + "\n"
-        final_report += "".join(raw_report)
+        final_report += exploit_report
+        final_report += "\n" + "="*40 + "\n### 📂 Detailed System Enumeration\n"
+        final_report += "".join(raw_report_blocks)
         
         return final_report
-
-    def analyze_audit_results(self, results):
-        """Patterns to check for in the results to flag critical issues"""
+        
+    def analyze_audit_results_colored(self, results):
+        """Analyzes results and returns a formatted HTML/Markdown string with colors"""
         findings = []
         
-        # 1. Check Sudo
+        # 1. Check Sudo - The Holy Grail
         sudo_out = results.get("Sudo Privileges", "")
         if "(ALL)" in sudo_out or "NOPASSWD" in sudo_out:
-             findings.append("[CRITICAL] User has SUDO privileges (ALL or NOPASSWD detected).")
+             findings.append("""
+> [!CAUTION]
+> **CRITICAL: SUDO PRIVILEGES DETECTED!**
+> <span style="color:red; font-weight:bold;">User has SUDO rights. Full Root Compromise is likely possible.</span>
+""")
         
         # 2. Check SUID (GTFOBins candidates)
         suid_out = results.get("SUID Binaries", "")
-        # Common dangerous SUIDs
-        dangerous_suids = ["nmap", "vim", "nano", "find", "bash", "cp", "mv", "awk", "python", "perl", "tar", "zip"]
+        dangerous_suids = ["nmap", "vim", "nano", "find", "bash", "cp", "mv", "awk", "python", "perl", "tar", "zip", "systemctl"]
+        hits = []
         for bin_name in dangerous_suids:
-            # Check for /bin/name or /usr/bin/name
             if f"/{bin_name}" in suid_out:
-                findings.append(f"[HIGH] Dangerous SUID Binary found: {bin_name} (Likely GTFOBins vector)")
+                hits.append(bin_name)
+        
+        if hits:
+             findings.append(f"""
+> [!WARNING]
+> **Dangerous SUID Binaries Found**
+> <span style="color:orange;">Binaries that can be abused for Privilege Escalation:</span> `{", ".join(hits)}`
+> Check GTFOBins: https://gtfobins.github.io/
+""")
 
         # 3. Check Secrets
-        secrets_www = results.get("Password Search (Var/WWW)", "")
-        secrets_etc = results.get("Password Search (Etc)", "")
-        
-        count_secrets = 0
-        if secrets_www and "Error" not in secrets_www and "[Empty]" not in secrets_www:
-             count_secrets += len(secrets_www.splitlines())
-        if secrets_etc and "Error" not in secrets_etc and "[Empty]" not in secrets_etc:
-             count_secrets += len(secrets_etc.splitlines())
-             
-        if count_secrets > 0:
-             findings.append(f"[MEDIUM] Potential cleartext passwords found in files ({count_secrets} hits). Check Raw Output.")
+        secrets_www = results.get("Sensitive Files (Search)", "")
+        if secrets_www and "password" in secrets_www.lower() and "[Empty]" not in secrets_www:
+             findings.append("""
+> [!IMPORTANT]
+> **Sensitive Data Found**
+> <span style="color:blue;">Potential passwords found in /var/www. Check detailed output.</span>
+""")
 
-        # 4. Kernel (Very basic check for old stuff)
+        # 4. Kernel
         uname = results.get("System Info", "")
         if "Linux 2.6" in uname or "Linux 3." in uname:
-             findings.append("[MEDIUM] Old Kernel version detected (Potential DirtyCOW/etc).")
+             findings.append("> [!NOTE]\n> **Old Kernel Detected**: Potential DirtyCOW or similar kernel exploits may apply.")
 
-        # Format Analysis Report
         if not findings:
-            return "[+] Smart Analysis: No obvious critical vulnerabilities found in this pass.\n"
+            return "\n> [!TIP]\n> Automated checks didn't find obvious privilege escalation vectors. Check the manual enumeration below.\n"
         
-        report = "[!] SMART ANALYSIS - CRITICAL FINDINGS DETECTED:\n"
-        report += "="*50 + "\n"
-        for f in findings:
-            report += f"  {f}\n"
-        report += "="*50 + "\n"
-        return report
+        return "\n".join(findings) + "\n"
+
+    def check_software_exploits(self, results):
+        """
+        Parses detected software and runs local SearchSploit checks.
+        """
+        findings = []
+        
+        # 1. Kernel Exploits
+        # Try to find a version number in System Info using Regex
+        sys_info = results.get("System Info", "")
+        # Regex for Kernel: 3.13.0-32-generic etc.
+        import re
+        kernel_match = re.search(r"(\d+\.\d+\.\d+[-\w]*)", sys_info)
+        
+        if kernel_match:
+             kernel_version = kernel_match.group(1)
+             console.print(f"[magenta][debug] Checking Kernel: {kernel_version}[/magenta]")
+             findings.append(self.query_searchsploit("Linux Kernel", kernel_version))
+
+        # 2. Interpreter Versions
+        dev_out = results.get("Dev Tools & Interpreters", "")
+        console.print(f"[magenta][debug] Parsing Dev Tools...[/magenta]")
+        
+        for line in dev_out.splitlines():
+            if "/" in line:
+                 try:
+                     parts = line.split()
+                     path = parts[0]
+                     name = os.path.basename(path)
+                     
+                     # Improved Parsings: Find the first token that looks like a version x.y.z
+                     version = ""
+                     # specialized regex for version
+                     ver_match = re.search(r"(\d+\.\d+(\.\d+)?)", line)
+                     if ver_match:
+                         # Ensure we don't pick up the process ID or something random, usually strictly after name
+                         # Heuristic: skip if match is in the path itself
+                         if ver_match.group(1) not in path:
+                             version = ver_match.group(1)
+                     
+                     if version:
+                         console.print(f"[magenta][debug] Found {name} -> {version}. Querying SearchSploit...[/magenta]")
+                         findings.append(self.query_searchsploit(name, version))
+                 except Exception as e:
+                     console.print(f"[red][debug] Error parsing line '{line}': {e}[/red]")
+
+        findings = [f for f in findings if f]
+        
+        if not findings:
+            console.print("[magenta][debug] No exploits found or parsed.[/magenta]")
+            return ""
+            
+        return "\n### 💣 Potential Exploits (SearchSploit)\n" + "\n".join(findings)
+
+    def _get_exploit_csv(self):
+        """Downloads the ExploitDB CSV index if not present"""
+        csv_path = "/tmp/files_exploits.csv"
+        url = "https://gitlab.com/exploit-database/exploitdb/-/raw/main/files_exploits.csv"
+        
+        if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
+            return csv_path
+            
+        try:
+            console.print(f"[cyan][*] Downloading ExploitDB CSV Index...[/cyan]")
+            import requests # Lazy import
+            r = requests.get(url, timeout=10)
+            if r.status_code == 200:
+                with open(csv_path, 'wb') as f:
+                    f.write(r.content)
+                return csv_path
+        except Exception as e:
+            console.print(f"[red]Failed to download ExploitDB CSV: {e}[/red]")
+            return None
+            
+        return None
+
+    def query_searchsploit(self, name, version):
+        """
+        Searches exploits in the CSV index (Lightweight method).
+        Matches if 'name' AND 'version' appear in the description.
+        """
+        csv_path = self._get_exploit_csv()
+        if not csv_path:
+            return ""
+
+        short_ver = ".".join(version.split(".")[:2])
+        if not short_ver: short_ver = version
+        
+        # Search terms
+        t_name = name.lower()
+        t_ver = short_ver.lower()
+        
+        matches = []
+        try:
+            import csv
+            with open(csv_path, 'r', encoding='utf-8', errors='ignore') as f:
+                reader = csv.reader(f)
+                next(reader, None) # Skip header
+                
+                for row in reader:
+                    if len(row) < 3: continue
+                    
+                    exploit_id = row[0]
+                    description = row[2].lower()
+                    
+                    # Basic matching logic
+                    if t_name in description and t_ver in description:
+                        # Match!
+                        matches.append((exploit_id, row[2])) # Original Clean Desc
+                        
+            if not matches:
+                # Debug info if zero matches found despite version existing
+                # console.print(f"[dim]No matches for {t_name} + {t_ver}[/dim]")
+                return ""
+                
+            # Limit to top 5 to avoid spam
+            top_matches = matches[:5]
+            
+            console.print(f"[green]  -> Found {len(matches)} exploits for {name} {version}![/green]")
+            
+            links = []
+            for eid, desc in top_matches:
+                links.append(f"- [**{eid}**] [{desc}](https://www.exploit-db.com/exploits/{eid})")
+            
+            return f"""
+#### 🕷️ {name.title()} {version} (Found {len(matches)} Exploits)
+<details>
+<summary>Click to view Exploit-DB Links</summary>
+
+{chr(10).join(links)}
+
+[View all results on Exploit-DB](https://www.exploit-db.com/search?q={name}+{version})
+</details>
+"""
+        except Exception as e:
+            # console.print(f"[red]CSV Search Error: {e}[/red]")
+            return ""
+        # 4. Kernel
+        uname = results.get("System Info", "")
+        if "Linux 2.6" in uname or "Linux 3." in uname:
+             findings.append("> [!NOTE]\n> **Old Kernel Detected**: Potential DirtyCOW or similar kernel exploits may apply.")
+
+        if not findings:
+            return "\n> [!TIP]\n> Automated checks didn't find obvious privilege escalation vectors. Check the manual enumeration below.\n"
+        
+        return "\n".join(findings) + "\n"
 
     def run_hydra(self, ip, user=None, password=None, user_list=None, pass_list=None):
         cmd = "hydra"
