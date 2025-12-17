@@ -14,12 +14,24 @@ RUN apt-get update && apt-get install -y \
     gobuster \
     wget \
     sqlmap \
+    hydra \
+    ruby \
+    ruby-dev \
+    build-essential \
+    libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Install WPScan
+RUN gem install wpscan
 
 # Install ExploitDB (SearchSploit)
 RUN git clone https://github.com/offensive-security/exploitdb.git /opt/exploitdb \
     && ln -s /opt/exploitdb/searchsploit /usr/local/bin/searchsploit \
     && cp -n /opt/exploitdb/.searchsploit_rc ~/ 2>/dev/null || true
+
+# Install Nikto (from Git)
+RUN git clone https://github.com/sullo/nikto.git /opt/nikto \
+    && ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
 
 
 # Setup Wordlists
