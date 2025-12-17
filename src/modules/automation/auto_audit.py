@@ -398,13 +398,24 @@ class Module(BaseModule):
         elif pass_list:
             cmd += f" -P {pass_list}"
             
-        cmd += f" ssh://{ip} -t 4 -I -V" # -t 4 tasks, -I ignore existing restore, -V verbose
+        # -t 4: tasks
+        # -I: ignore existing restore
+        # -V: verbose
+        # -e nsr: try "null" password, "same" as user, "reverse" as user
+        cmd += f" ssh://{ip} -t 4 -I -V -e nsr"
         
         # Run
         output, _ = self.run_command(cmd)
         
+        # Check for specific error about password auth
+        if "does not support password authentication" in output:
+             console.print("[bold red][!] ERROR: Target server has disabled Password Authentication.[/bold red]")
+             console.print("[yellow]    -> Attempts to brute force passwords will fail.[/yellow]")
+             console.print("[yellow]    -> The server may require an SSH Key or Keyboard-Interactive auth (which Hydra might not support easily here).[/yellow]")
+        
         # Check for success in output (hydra usually prints host: ip login: user password: pass)
-        if "login:" in output and "password:" in output:
+        # Regex is safer than simple string check as output format can vary
+        if "login:" in output and "password:" in output and "0 valid password found" not in output:
              console.print("[bold green][!] HYDRA SUCCESS![/bold green]")
              return f"Hydra Findings:\n{output}"
         else:
