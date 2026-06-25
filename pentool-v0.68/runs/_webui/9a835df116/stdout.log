@@ -1,0 +1,55 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.138.161 --ui cli --authorized --workspace /runs --run-id 9a835df116 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --no-web-early --web-crawl --sqlmap --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444
+# started: 2026-06-12 12:30:06
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+Wordlist introuvable: /usr/share/wordlists/dirb/common.txt -> gobuster/ffuf SKIP
+Aucune wordlist SecLists trouvée — le fuzzing web sera limité
+LHOST `192.168.137.185` fourni mais l'interface ne répond plus. Vérifiez votre VPN.
+Target: 10.48.138.161
+Run dir: /runs/10.48.138.161/9a835df116
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.5s) -> /runs/10.48.138.161/9a835df116/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 22,80,32768
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (9.1s) -> /runs/10.48.138.161/9a835df116/logs/nmap_enum_cmd.txt
+Nmap enum sans résultat (ports filtrés/ralentis) — fallback sur ports discovery
+22/tcp ssh   
+80/tcp http   
+32768/tcp filenet-tms   
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.1s) -> /runs/10.48.138.161/9a835df116/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+URLs détectées: http://10.48.138.161
+Étape 4/4 — Enum web automatique (parallèle)
+nikto désactivé (--no-nikto)
+ffuf activé mais absent -> SKIP
+OK  [whatweb http://10.48.138.161] (19.0s) -> /runs/10.48.138.161/9a835df116/logs/whatweb_http___10.48.138.161.txt
+Web crawl — extraction formulaires et paramètres
+[+] Web crawl : 0 formulaire(s), 0 param(s), 5 endpoint(s)
+sqlmap : aucun paramètre/formulaire trouvé → SKIP
+[+] Port non-standard 32768 (http) validé → ajouté à nuclei
+Nuclei vuln scan (severity: high,critical, 2 cible(s))
+TIMEOUT [nuclei] (300.2s) -> /runs/10.48.138.161/9a835df116/logs/nuclei_cmd.txt
+============================================================
+PHASE EXPLOITATION
+============================================================
+Exploitation — FTP anonyme
+============================================================
+PHASE POST-EXPLOITATION
+============================================================
+Génération reporting
+Module reporting.py non trouvé — fallback report basique
+Report généré: /runs/10.48.138.161/9a835df116/report.md
+Résumé: 3 services, 1 urls, 2 findings.
+Report: /runs/10.48.138.161/9a835df116/report.md

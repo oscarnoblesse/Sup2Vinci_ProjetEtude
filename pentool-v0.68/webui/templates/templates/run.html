@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="toolbar">
+  <a class="btn" href="/">← Dashboard</a>
+  <div class="spacer"></div>
+  <button class="btn danger" id="stopBtn">Stop</button>
+</div>
+
+<section class="card">
+  <h2>Run {{ run_id }}</h2>
+
+  <div class="meta">
+    <div><span class="k">Target</span> <span class="v">{{ run.target }}</span></div>
+    <div><span class="k">Status</span> <span class="badge" id="statusBadge">{{ run.status }}</span></div>
+    <div><span class="k">Durée</span> <span class="v" id="duration">—</span></div>
+    <div class="cmdline">
+      <span class="k">Cmd</span>
+      <code class="cmd" id="cmdText">{{ run.cmd }}</code>
+      <button class="btn small" id="copyCmd">Copier</button>
+    </div>
+  </div>
+
+  <div class="stages">
+    <div class="stage" id="st_ports">Nmap ports</div>
+    <div class="stage" id="st_enum">Nmap enum</div>
+    <div class="stage" id="st_searchsploit">Searchsploit</div>
+    <div class="stage" id="st_vuln">Nmap vuln</div>
+    <div class="stage" id="st_nuclei">Nuclei</div>
+    <div class="stage" id="st_enum4linux">SMB enum</div>
+    <div class="stage" id="st_web">Web enum</div>
+    <div class="stage" id="st_report">Report</div>
+  </div>
+
+  {# Boutons désactivés par défaut — app.js les active quand les fichiers existent #}
+  <div class="downloads">
+    <a class="btn primary disabled" id="dlView" href="/view/{{run_id}}/report" target="_blank"
+       aria-disabled="true" style="pointer-events:none">Voir le rapport</a>
+    <a class="btn disabled" id="dlHtml" href="/download/{{run_id}}/report.html"
+       aria-disabled="true" style="pointer-events:none">report.html</a>
+    <a class="btn disabled" id="dlMd" href="/download/{{run_id}}/report.md"
+       aria-disabled="true" style="pointer-events:none">report.md</a>
+    <a class="btn disabled" id="dlJson" href="/download/{{run_id}}/report.json"
+       aria-disabled="true" style="pointer-events:none">report.json</a>
+  </div>
+</section>
+
+<section class="card">
+  <div class="toolbar">
+    <h3>Logs (tail)</h3>
+    <div class="spacer"></div>
+    <label class="toggle"><input type="checkbox" id="pause"> Pause</label>
+    <label class="toggle"><input type="checkbox" id="follow" checked> Auto-scroll</label>
+  </div>
+
+  <pre id="log" class="log">Chargement…</pre>
+</section>
+
+{# RUN_ID passé via data-attribute (compatible CSP, pas de script inline) #}
+<div id="runData" data-run-id="{{ run_id }}" style="display:none"></div>
+
+{# ── Modale confirmation exploitation ── #}
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+     z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#1a1d27;border:1px solid #ef4444;border-radius:10px;
+              max-width:500px;width:90%;padding:1.6rem;box-shadow:0 8px 32px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+      <span style="font-size:1.4rem">⚠️</span>
+      <h3 style="margin:0;color:#ef4444;font-size:1rem" id="confirmTitle">Action requise</h3>
+    </div>
+    <p style="margin:0 0 .4rem;font-size:.85rem;color:#94a3b8">Le scan attend votre autorisation pour continuer :</p>
+    <div style="background:#0f1117;border-radius:6px;padding:.8rem 1rem;margin-bottom:1.2rem;
+                border-left:3px solid #ef4444">
+      <div style="font-weight:600;margin-bottom:.3rem" id="confirmActionTitle"></div>
+      <div style="font-size:.82rem;color:#94a3b8;line-height:1.5" id="confirmDetails"></div>
+    </div>
+    <div style="display:flex;gap:.7rem;justify-content:flex-end">
+      <button id="confirmNo" class="btn danger" style="min-width:90px">
+        ✕ Ignorer
+      </button>
+      <button id="confirmYes" class="btn primary" style="min-width:90px">
+        ✓ Autoriser
+      </button>
+    </div>
+    <p style="margin:.8rem 0 0;font-size:.75rem;color:#64748b;text-align:center">
+      Sans réponse sous 5 minutes, l'action sera automatiquement ignorée.
+    </p>
+  </div>
+</div>
+
+{% endblock %}

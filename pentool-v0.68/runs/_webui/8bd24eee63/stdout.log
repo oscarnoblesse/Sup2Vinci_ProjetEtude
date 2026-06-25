@@ -1,0 +1,26 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.179.255 --ui cli --authorized --workspace /runs --run-id 8bd24eee63 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444
+# started: 2026-06-12 09:36:54
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+Wordlist introuvable: /usr/share/wordlists/dirb/common.txt -> gobuster/ffuf SKIP
+Aucune wordlist SecLists trouvée — le fuzzing web sera limité
+Target: 10.48.179.255
+Run dir: /runs/10.48.179.255/8bd24eee63
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (1.1s) -> /runs/10.48.179.255/8bd24eee63/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 21,22,139,445
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+
+[!] Interruption (signal 15) — arrêt des outils en cours…

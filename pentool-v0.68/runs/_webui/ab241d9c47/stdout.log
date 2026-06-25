@@ -1,0 +1,64 @@
+$ python3 /pentool/pentool-v0.065.py 10.49.151.205 --ui cli --authorized --workspace /runs --run-id ab241d9c47 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --web-crawl --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444
+# started: 2026-06-24 19:44:53
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `192.168.137.185` vérifié et sauvegardé.
+Target: 10.49.151.205
+Run dir: /runs/10.49.151.205/ab241d9c47
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (1.9s) -> /runs/10.49.151.205/ab241d9c47/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 21,22,139,445
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (26.3s) -> /runs/10.49.151.205/ab241d9c47/logs/nmap_enum_cmd.txt
+21/tcp ftp vsftpd 2.0.8 or later 
+22/tcp ssh OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 Ubuntu Linux; protocol 2.0
+139/tcp netbios-ssn Samba smbd 3.X - 4.X workgroup: WORKGROUP
+445/tcp netbios-ssn Samba smbd 4.7.6-Ubuntu workgroup: WORKGROUP
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (5.7s) -> /runs/10.49.151.205/ab241d9c47/logs/searchsploit_cmd.txt
+enum4linux-ng — énumération SMB/NetBIOS (10.49.151.205)
+OK  [enum4linux-ng] (30.8s) -> /runs/10.49.151.205/ab241d9c47/logs/enum4linux_cmd.txt
+Nuclei: aucun service HTTP confirmé → SKIP
+============================================================
+PHASE EXPLOITATION
+============================================================
+[WebUI] En attente de confirmation : Exploitation FTP anonyme
+[WebUI] Confirmation reçue : Exploitation FTP anonyme
+Exploitation — FTP anonyme
+[!] FTP WRITABLE: ['/scripts']
+[+] FTP: 3 fichier(s) téléchargé(s)
+[WebUI] En attente de confirmation : Exploitation SMB — accès anonyme/guest
+[WebUI] Confirmation reçue : Exploitation SMB — accès anonyme/guest
+Exploitation — SMB accès anonyme/guest
+OK  [smbclient -L] (2.7s) -> /runs/10.49.151.205/ab241d9c47/logs/exploit_smb_list_cmd.txt
+FAIL [smbclient print$] (rc=1, 1.7s) -> /runs/10.49.151.205/ab241d9c47/logs/exploit_smb_print__cmd.txt
+OK  [smbclient pics] (2.1s) -> /runs/10.49.151.205/ab241d9c47/logs/exploit_smb_pics_cmd.txt
+OK  [smbmap] (4.6s) -> /runs/10.49.151.205/ab241d9c47/logs/exploit_smbmap_cmd.txt
+[WebUI] En attente de confirmation : Exploitation SSH — CVE-2018-15473 (OpenSSH 7.6p1 Ubuntu 4ubuntu0.3)
+[WebUI] Confirmation reçue : Exploitation SSH — CVE-2018-15473 (OpenSSH 7.6p1 Ubuntu 4ubuntu0.3)
+Exploitation — SSH CVE-2018-15473 (OpenSSH 7.6p1 Ubuntu 4ubuntu0.3)
+OK  [ssh-userenum] (20.0s) -> /runs/10.49.151.205/ab241d9c47/logs/exploit_ssh_userenum_cmd.txt
+[WebUI] En attente de confirmation : Phase Post-Exploitation — accès initial + énumération interne
+[WebUI] Timeout (300s) sans réponse → SKIP : Phase Post-Exploitation — accès initial + énumération interne
+[Post-Exploit] Phase post-exploitation → refusée par l'utilisateur
+Génération reporting
+Reports générés: MD + JSON + HTML
+  → /runs/10.49.151.205/ab241d9c47/report.md
+  → /runs/10.49.151.205/ab241d9c47/report.json
+  → /runs/10.49.151.205/ab241d9c47/report.html
+Résumé: 4 services, 0 urls, 5 findings.
+Report: /runs/10.49.151.205/ab241d9c47/report.md

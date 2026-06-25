@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="card">
+  <h2>Rapports d'audit</h2>
+  <div class="hint">Tous les scans terminés avec rapports disponibles. Auto-refresh.</div>
+
+  <div class="tablewrap">
+    <table class="table" id="reportsTable">
+      <thead>
+        <tr>
+          <th>Run</th>
+          <th>Target</th>
+          <th>Date</th>
+          <th>Durée</th>
+          <th>Status</th>
+          <th>Rapport</th>
+          <th>Téléchargements</th>
+        </tr>
+      </thead>
+      <tbody id="reportsBody">
+        <tr><td colspan="7" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}

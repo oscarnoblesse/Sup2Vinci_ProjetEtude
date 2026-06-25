@@ -1,0 +1,43 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.138.161 --ui cli --authorized --workspace /runs --run-id ded2aa79f3 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444
+# started: 2026-06-12 11:33:24
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+Wordlist introuvable: /usr/share/wordlists/dirb/common.txt -> gobuster/ffuf SKIP
+Aucune wordlist SecLists trouvée — le fuzzing web sera limité
+Target: 10.48.138.161
+Run dir: /runs/10.48.138.161/ded2aa79f3
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.4s) -> /runs/10.48.138.161/ded2aa79f3/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 22,80,32768
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (8.8s) -> /runs/10.48.138.161/ded2aa79f3/logs/nmap_enum_cmd.txt
+Aucun service open détecté.
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.1s) -> /runs/10.48.138.161/ded2aa79f3/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+Nuclei vuln scan (severity: high,critical, 1 cible(s))
+TIMEOUT [nuclei] (300.3s) -> /runs/10.48.138.161/ded2aa79f3/logs/nuclei_cmd.txt
+============================================================
+PHASE EXPLOITATION
+============================================================
+Exploitation — FTP anonyme
+============================================================
+PHASE POST-EXPLOITATION
+============================================================
+Génération reporting
+Module reporting.py non trouvé — fallback report basique
+Report généré: /runs/10.48.138.161/ded2aa79f3/report.md
+Résumé: 0 services, 0 urls, 2 findings.
+Report: /runs/10.48.138.161/ded2aa79f3/report.md

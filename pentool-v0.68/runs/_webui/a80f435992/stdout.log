@@ -1,0 +1,29 @@
+$ python3 /pentool/pentool-v0.065.py 10.49.181.134 --ui cli --authorized --workspace /runs --run-id a80f435992 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --no-web-early --web-crawl --sqlmap --xss --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444 --archive-crack --wp-brute --wp-aggressive --wp-exploit
+# started: 2026-06-24 16:25:25
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `192.168.137.185` vérifié et sauvegardé.
+Target: 10.49.181.134
+Run dir: /runs/10.49.181.134/a80f435992
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.7s) -> /runs/10.49.181.134/a80f435992/logs/nmap_ports_cmd.txt
+Aucun port open détecté sur la phase ports discovery.
+Aucun service open détecté.
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.0s) -> /runs/10.49.181.134/a80f435992/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+Aucun service HTTP/HTTPS détecté -> SKIP web enum
+[WebUI] En attente de confirmation : Brute Force WordPress — attaque par dictionnaire

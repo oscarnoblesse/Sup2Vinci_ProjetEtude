@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{ title or "Pentool WebUI" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo">PT</div>
+          <div>
+            <div class="brand-title">Pentool WebUI</div>
+            <div class="brand-sub">Local • Détection only • Logs & reporting</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a href="/">Dashboard</a>
+          <a href="/reports">Rapports</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <span>Flask • CSRF protected • Hardened headers</span>
+    </footer>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </div>
+
+  <!-- Modale de confirmation suppression (remplace confirm() natif) -->
+  <div id="deleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none">
+    <div class="modal-box">
+      <div class="modal-icon">🗑</div>
+      <h3 id="modalTitle" class="modal-title">Confirmer la suppression</h3>
+      <p id="modalMessage" class="modal-message">Cette action est irréversible.</p>
+
+      <label class="modal-skip-label">
+        <input type="checkbox" id="modalSkipCheck">
+        Ne plus demander de confirmation
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">Annuler</button>
+        <button class="btn danger" id="modalConfirm">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

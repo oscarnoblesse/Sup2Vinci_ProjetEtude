@@ -1,0 +1,45 @@
+$ python3 /pentool/pentool-v0.065.py 192.168.0.1 --ui cli --authorized --workspace /runs --run-id c3fff7f3ad --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444
+# started: 2026-06-24 15:18:59
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `192.168.137.185` vérifié et sauvegardé.
+Target: 192.168.0.1
+Run dir: /runs/192.168.0.1/c3fff7f3ad
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.8s) -> /runs/192.168.0.1/c3fff7f3ad/logs/nmap_ports_cmd.txt
+Aucun port open détecté sur la phase ports discovery.
+Aucun service open détecté.
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.2s) -> /runs/192.168.0.1/c3fff7f3ad/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+Nuclei: aucun service HTTP confirmé → SKIP
+============================================================
+PHASE EXPLOITATION
+============================================================
+Exploitation FTP — aucun service FTP détecté → SKIP
+[WebUI] En attente de confirmation : Phase Post-Exploitation — accès initial + énumération interne
+[WebUI] Confirmation reçue : Phase Post-Exploitation — accès initial + énumération interne
+============================================================
+PHASE POST-EXPLOITATION
+============================================================
+Génération reporting
+Reports générés: MD + JSON + HTML
+  → /runs/192.168.0.1/c3fff7f3ad/report.md
+  → /runs/192.168.0.1/c3fff7f3ad/report.json
+  → /runs/192.168.0.1/c3fff7f3ad/report.html
+Résumé: 0 services, 0 urls, 1 findings.
+Report: /runs/192.168.0.1/c3fff7f3ad/report.md

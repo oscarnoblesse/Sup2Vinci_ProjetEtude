@@ -1,0 +1,7 @@
+{
+  "action_id": "wp_bruteforce",
+  "title": "Brute Force WordPress — attaque par dictionnaire",
+  "details": "Lancer une attaque par dictionnaire sur l'interface XML-RPC de WordPress (http://10.49.181.134). Tente de deviner les mots de passe des comptes détectés. Génère un volume important de requêtes — peut déclencher des alertes ou bloquer des comptes.",
+  "status": "pending",
+  "timestamp": 1782318328.9991784
+}

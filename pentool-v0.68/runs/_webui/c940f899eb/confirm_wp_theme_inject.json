@@ -1,0 +1,7 @@
+{
+  "action_id": "wp_theme_inject",
+  "title": "WordPress — Theme File Injection (Reverse Shell)",
+  "details": "Cible      : http://10.49.162.208/wp-admin\nCredentials: Elliot:ER28-0652\nAction     : Injection d'un payload PHP dans 404.php du thème actif\nListener   : 192.168.137.185:4444\n⚠️ Cette action MODIFIE un fichier PHP sur le serveur cible.",
+  "status": "pending",
+  "timestamp": 1781516405.669589
+}

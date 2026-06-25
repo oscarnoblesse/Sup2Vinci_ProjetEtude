@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="toolbar">
+  <a class="btn" href="/">← Dashboard</a>
+  <div class="spacer"></div>
+  <button class="btn danger" id="stopBtn">Stop</button>
+  <button class="btn danger" id="deleteBtn" title="Supprimer ce scan">🗑 Supprimer</button>
+</div>
+
+<section class="card">
+  <h2>Run {{ run_id }}</h2>
+
+  <div class="meta">
+    <div><span class="k">Target</span> <span class="v">{{ run.target }}</span></div>
+    <div><span class="k">Status</span> <span class="badge" id="statusBadge">{{ run.status }}</span></div>
+    <div><span class="k">Durée</span> <span class="v" id="duration">—</span></div>
+    <div class="cmdline">
+      <span class="k">Cmd</span>
+      <code class="cmd" id="cmdText">{{ run.cmd }}</code>
+      <button class="btn small" id="copyCmd">Copier</button>
+    </div>
+  </div>
+
+  <div class="stages">
+    <div class="stage" id="st_ports">Nmap ports</div>
+    <div class="stage" id="st_enum">Nmap enum</div>
+    <div class="stage" id="st_searchsploit">Searchsploit</div>
+    <div class="stage" id="st_vuln">Nmap vuln</div>
+    <div class="stage" id="st_nuclei">Nuclei</div>
+    <div class="stage" id="st_enum4linux">SMB enum</div>
+    <div class="stage" id="st_web">Web enum</div>
+    <div class="stage" id="st_ftp">FTP</div>
+    <div class="stage" id="st_ssh">SSH enum</div>
+    <div class="stage" id="st_exploit">Exploit</div>
+    <div class="stage" id="st_postexploit">Post-exploit</div>
+    <div class="stage" id="st_robots">robots.txt</div>
+    <div class="stage" id="st_js">JS scrape</div>
+    <div class="stage" id="st_git">.git check</div>
+    <div class="stage" id="st_archives">Archives</div>
+    <div class="stage" id="st_gpg">GPG decrypt</div>
+    <div class="stage" id="st_wpscan">WP recon</div>
+    <div class="stage" id="st_wordpress">WP brute</div>
+    <div class="stage" id="st_wpexploit">WP exploit</div>
+    <div class="stage" id="st_report">Report</div>
+  </div>
+
+  {# Boutons désactivés par défaut — app.js les active quand les fichiers existent #}
+  <div class="downloads">
+    <a class="btn primary disabled" id="dlView" href="/view/{{run_id}}/report" target="_blank"
+       aria-disabled="true" style="pointer-events:none">Voir le rapport</a>
+    <a class="btn disabled" id="dlHtml" href="/download/{{run_id}}/report.html"
+       aria-disabled="true" style="pointer-events:none">report.html</a>
+    <a class="btn disabled" id="dlMd" href="/download/{{run_id}}/report.md"
+       aria-disabled="true" style="pointer-events:none">report.md</a>
+    <a class="btn disabled" id="dlJson" href="/download/{{run_id}}/report.json"
+       aria-disabled="true" style="pointer-events:none">report.json</a>
+  </div>
+</section>
+
+<section class="card">
+  <div class="toolbar">
+    <h3>Logs (tail)</h3>
+    <div class="spacer"></div>
+    <label class="toggle"><input type="checkbox" id="pause"> Pause</label>
+    <label class="toggle"><input type="checkbox" id="follow" checked> Auto-scroll</label>
+  </div>
+
+  <pre id="log" class="log">Chargement…</pre>
+</section>
+
+{# RUN_ID passé via data-attribute (compatible CSP, pas de script inline) #}
+<div id="runData" data-run-id="{{ run_id }}" style="display:none"></div>
+
+{% endblock %}

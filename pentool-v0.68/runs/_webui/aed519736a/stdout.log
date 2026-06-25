@@ -1,0 +1,73 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.155.127 --ui cli --authorized --workspace /runs --run-id aed519736a --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --no-web-early --web-crawl --sqlmap --xss --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4444 --archive-crack
+# started: 2026-06-12 14:18:31
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `192.168.137.185` fourni mais l'interface ne répond plus. Vérifiez votre VPN.
+Target: 10.48.155.127
+Run dir: /runs/10.48.155.127/aed519736a
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (4.4s) -> /runs/10.48.155.127/aed519736a/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 21,22,80
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (24.2s) -> /runs/10.48.155.127/aed519736a/logs/nmap_enum_cmd.txt
+21/tcp ftp vsftpd 3.0.3 
+22/tcp ssh OpenSSH 8.0 protocol 2.0
+80/tcp tcpwrapped   
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (1.1s) -> /runs/10.48.155.127/aed519736a/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+URLs détectées: http://10.48.155.127
+Étape 4/4 — Enum web automatique (parallèle)
+nikto désactivé (--no-nikto)
+ffuf activé (remplace gobuster)
+OK  [whatweb http://10.48.155.127] (3.1s) -> /runs/10.48.155.127/aed519736a/logs/whatweb_http___10.48.155.127.txt
+OK  [ffuf http://10.48.155.127] (30.6s) -> /runs/10.48.155.127/aed519736a/logs/ffuf_http___10.48.155.127.txt
+[ffuf followup] Exploration de 2 résultat(s) ffuf
+[+] [ffuf followup] Directory listing: http://10.48.155.127/backups/
+[+] [ffuf followup] Téléchargement: http://10.48.155.127/backups/backup.zip → backup.zip
+[+] [ffuf followup] Téléchargement: http://10.48.155.127/backups/ → backups
+[ffuf followup] 3 finding(s) — voir /runs/10.48.155.127/aed519736a/logs/ffuf_followup.txt
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.155.127/backups/backup.zip
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.155.127/backups/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.155.127/index.html
+[robots] Analyse robots.txt + sitemap.xml
+[robots] Aucun nouveau chemin trouvé
+[JS scraper] Analyse des fichiers JavaScript
+[JS scraper] Aucun secret ou endpoint trouvé
+[.git] Vérification exposition dépôt Git
+[.git] Aucun dépôt exposé trouvé
+[archives] Analyse de 1 archive(s)
+[+] [archives] backup.zip extrait → /runs/10.48.155.127/aed519736a/logs/ffuf_downloads/backup
+Web crawl — exploration de 18 pages cibles (max 20)
+[+] Web crawl : 0 formulaire(s), 0 param(s), 0 endpoint(s) (18 pages visitées)
+XSS scan — test des formulaires et paramètres URL
+XSS scan : aucun XSS réfléchi détecté sur les cibles testées
+sqlmap : aucun paramètre/formulaire trouvé → SKIP
+Nuclei vuln scan (severity: high,critical, 4 cible(s))
+TIMEOUT [nuclei] (300.2s) -> /runs/10.48.155.127/aed519736a/logs/nuclei_cmd.txt
+============================================================
+PHASE EXPLOITATION
+============================================================
+Exploitation — FTP anonyme
+FTP: pas d'accès anonyme confirmé -> SKIP
+============================================================
+PHASE POST-EXPLOITATION
+============================================================
+Génération reporting
+Module reporting.py non trouvé — fallback report basique
+Report généré: /runs/10.48.155.127/aed519736a/report.md
+Résumé: 3 services, 4 urls, 7 findings.
+Report: /runs/10.48.155.127/aed519736a/report.md

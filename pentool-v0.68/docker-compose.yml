@@ -1,0 +1,50 @@
+services:
+
+  # ── WebUI — accessible sur http://localhost:5001 ──────
+  # Port mapping bridge : Mac → container
+  #   5001 → WebUI Flask
+  #   4444 → listener reverse shell
+  #   4445, 4446 → ports alternatifs
+  webui:
+    build: .
+    image: pentool:0.68
+    container_name: pentool_webui
+    ports:
+      - "5001:5001"   # WebUI
+      - "4444:4444"   # Reverse shell (--lport 4444)
+      - "4445:4445"   # Reverse shell alt
+      - "4446:4446"   # Reverse shell alt
+    volumes:
+      - ./runs:/runs
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PENTOOL_WORKSPACE=/runs
+    command: >
+      python3 pentool-v0.068.py
+      --ui web
+      --web-host 0.0.0.0
+      --web-port 5001
+      --workspace /runs
+    restart: unless-stopped
+
+  # ── CLI — network host (Linux natif / VPN direct) ─────
+  # Sur macOS : passe --lhost <ton_IP_VPN_utun> explicitement
+  cli:
+    build: .
+    image: pentool:0.68
+    container_name: pentool_cli
+    network_mode: "host"
+    volumes:
+      - ./runs:/runs
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PENTOOL_WORKSPACE=/runs
+    entrypoint: ["python3", "pentool-v0.068.py"]
+    profiles:
+      - cli

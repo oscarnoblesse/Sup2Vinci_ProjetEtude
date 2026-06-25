@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="grid">
+  <div class="card">
+    <h2>Lancer un audit</h2>
+
+    <form method="post" action="/run" class="form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 1 — Cible & mode de scan
+         ══════════════════════════════════════════════════════ #}
+      <div class="section-title">🎯 Cible & mode de scan</div>
+
+      <label>Cible (IP/hostname)</label>
+      <input name="target" placeholder="10.10.10.10 ou target.htb" required
+             pattern="[A-Za-z0-9_.:\ -]{1,253}"
+             title="IP ou hostname valide (pas de localhost)">
+
+      <div class="row">
+        <div>
+          <label>Preset</label>
+          <select name="preset">
+            <option value="pro-fast" selected>pro-fast (recommandé)</option>
+            <option value="custom">custom</option>
+          </select>
+        </div>
+        <div>
+          <label>Scan mode</label>
+          <select name="scan_mode" id="scanModeSelect">
+            <option value="quick">quick — recon seul (top 1000)</option>
+            <option value="pentest" selected>pentest — quick + exploit ⚡ (recommandé)</option>
+            <option value="full">full — 65535 ports + exploit ⚡ (lent)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="pn" checked> -Pn (skip host discovery)</label>
+        <label class="check"><input type="checkbox" name="staged" checked> Staged Nmap (ports → enum)</label>
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 2 — Réseau & système
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">📡 Réseau & système</div>
+      <div class="hint muted">Modules passifs : analyse de version, références CVE et audit SMB/RPC.</div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="searchsploit" checked> 🔎 Searchsploit (références CVE)</label>
+        <label class="check"><input type="checkbox" name="nuclei" checked> 🧪 Nuclei (vuln scanner moderne)</label>
+        <label class="check"><input type="checkbox" name="enum4linux" checked> 🖧 enum4linux-ng (SMB / RPC auto)</label>
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 3 — Énumération Web
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">🌐 Énumération Web</div>
+      <div class="hint muted">Découverte de répertoires, fichiers sensibles et métadonnées. Ces modules s'enchaînent automatiquement.</div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="ffuf" checked> 📁 ffuf (fuzzing répertoires & fichiers)</label>
+        <label class="check"><input type="checkbox" name="no_nikto" checked> ✖ Désactiver nikto (lent)</label>
+        <label class="check"><input type="checkbox" name="no_web"> ✖ Désactiver Web enum (tout)</label>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="robots" checked> 🤖 robots.txt / sitemap.xml</label>
+        <label class="check"><input type="checkbox" name="js_scrape" checked> 📜 JS scraper (API keys, endpoints cachés)</label>
+        <label class="check"><input type="checkbox" name="git_check" checked> 🗂 .git exposé (dump code source)</label>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="web_early" checked> ⚡ Web early (démarre pendant Nmap)</label>
+        <label class="check"><input type="checkbox" name="no_web_early"> Forcer web enum après Nmap</label>
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 4 — Attaques Web (crawl → SQLi → XSS)
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">🗡️ Attaques Web</div>
+      <div class="hint muted">Le Web crawl découvre les formulaires et paramètres — il est recommandé comme prérequis à SQLmap et XSS.</div>
+
+      <div class="dep-block">
+        <label class="check exploit">
+          <input type="checkbox" name="web_crawl" id="crawlToggle">
+          🕷 Web crawl (formulaires & paramètres) <span class="dep-badge">prérequis recommandé</span>
+        </label>
+        <div class="dep-children" id="crawlDeps">
+          <label class="check exploit dep-child">
+            <input type="checkbox" name="sqlmap"> 💉 SQLmap (injection SQL auto)
+          </label>
+          <label class="check exploit dep-child">
+            <input type="checkbox" name="xss"> ⚡ XSS scan (Cross-Site Scripting)
+          </label>
+        </div>
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 5 — WordPress (cascade recon → brute → aggressive → inject)
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">🔑 WordPress <span class="badge-auto">auto-détecté</span></div>
+      <div class="hint muted">Pipeline en 4 étapes : chaque étape s'appuie sur la précédente. Étape 1 toujours active si WordPress est détecté.</div>
+
+      <div class="wp-pipeline">
+
+        <!-- Étape 1 : automatique, pas de checkbox -->
+        <div class="wp-step wp-step-auto">
+          <div class="wp-step-header">
+            <span class="wp-step-num">1</span>
+            <span class="wp-step-icon">🔍</span>
+            <span>Scan recon <span class="badge-auto">automatique</span></span>
+          </div>
+          <div class="wp-step-desc">Version WP, utilisateurs énumérés, plugins et thèmes installés.</div>
+        </div>
+
+        <div class="wp-arrow">↓</div>
+
+        <!-- Étape 2 -->
+        <label class="wp-step wp-step-check" id="wpStep2"
+               onclick="console.log('LABEL onclick fired, syncWp defined:', typeof syncWp); setTimeout(syncWp,0)">
+          <div class="wp-step-header">
+            <span class="wp-step-num">2</span>
+            <span class="wp-step-icon">🔑</span>
+            <input type="checkbox" name="wp_brute" id="wpBruteToggle"
+                   onclick="console.log('CHECKBOX onclick fired, checked will be:', !this.checked)">
+            <span>Brute force (wpscan + wordlist)</span>
+          </div>
+          <div class="wp-step-desc">Attaque par dictionnaire sur les comptes WP découverts à l'étape 1.</div>
+        </label>
+
+        <div class="wp-arrow" id="wpArrow3" style="opacity:.35">↓</div>
+
+        <!-- Étape 3 : label + disabled → HTML empêche le toggle quand verrouillé -->
+        <label class="wp-step wp-step-check wp-step-locked" id="wpStep3">
+          <div class="wp-step-header">
+            <span class="wp-step-num">3</span>
+            <span class="wp-step-icon">🕷</span>
+            <input type="checkbox" name="wp_aggressive" id="wpAggressiveToggle" disabled>
+            <span>Scan agressif (tous plugins/thèmes — 30+ min)</span>
+          </div>
+          <div class="wp-step-desc">Énumération exhaustive de tous les plugins et thèmes, y compris inactifs.</div>
+        </label>
+
+        <div class="wp-arrow" id="wpArrow4" style="opacity:.35">↓</div>
+
+        <!-- Étape 4 : idem -->
+        <label class="wp-step wp-step-check wp-step-locked wp-step-danger" id="wpStep4">
+          <div class="wp-step-header">
+            <span class="wp-step-num">4</span>
+            <span class="wp-step-icon">🔥</span>
+            <input type="checkbox" name="wp_exploit" id="wpExploitCheck" disabled>
+            <span>Theme Inject — reverse shell via éditeur</span>
+            <span class="dep-badge danger">nécessite LHOST</span>
+          </div>
+          <div class="wp-step-desc">Injection d'un payload PHP dans un thème WP pour obtenir un shell inverse. Utilise les credentials trouvés à l'étape 2.</div>
+        </label>
+
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 6 — Credentials & Authentification
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">🔐 Credentials & Authentification</div>
+      <div class="hint muted">Deux sources de credentials : les hints (connus à l'avance) et l'auth web pour les scans authentifiés.</div>
+
+      <div class="cred-group">
+        <div class="cred-label">Credential hints <span class="badge-opt">optionnel</span></div>
+        <div class="hint">Username / password connu — testé en priorité dans tous les modules (FTP, SSH, WordPress...).</div>
+        <div class="row">
+          <div>
+            <label>Username</label>
+            <input name="hint_username" placeholder="admin, elliot, user...">
+          </div>
+          <div>
+            <label>Password</label>
+            <input name="hint_password" type="password" placeholder="password123...">
+          </div>
+        </div>
+      </div>
+
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 7 — Brute force & Cracking (pas besoin d'IP)
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">💥 Brute force & Cracking <span class="badge-opt">opt-in</span></div>
+      <div class="hint muted">Ces modules ne nécessitent pas de LHOST — ils attaquent directement la cible ou travaillent en local.</div>
+
+      <div class="row">
+        <label class="check exploit" id="exploitCheckRow">
+          <input type="checkbox" name="exploit_brute" id="bruteToggle"> 🔨 Hydra — brute force SSH / FTP
+        </label>
+        <label class="check">
+          <input type="checkbox" name="archive_crack"> 🔓 Cracker archives (zip2john + john)
+        </label>
+      </div>
+
+      <div id="wordlistRow" style="display:none;margin-top:8px">
+        <div class="row">
+          <div>
+            <label>Userlist Hydra</label>
+            <input name="userlist" placeholder="/usr/share/seclists/Usernames/top-usernames-shortlist.txt">
+          </div>
+          <div>
+            <label>Passlist Hydra</label>
+            <input name="passlist" placeholder="/usr/share/seclists/Passwords/Common-Credentials/top-passwords-shortlist.txt">
+          </div>
+        </div>
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         BLOC 8 — Accès initial (reverse shell — nécessite LHOST)
+         ══════════════════════════════════════════════════════ #}
+      <hr class="sep">
+      <div class="section-title">🔥 Accès initial — Reverse shell</div>
+      <div class="hint muted">LHOST requis pour déclencher un reverse shell automatique (FTP writable détecté, WP Theme Inject).</div>
+
+      <div class="row">
+        <div>
+          <label>LHOST — ton IP VPN (tun0)</label>
+          <input name="lhost" id="lhostInput" placeholder="10.8.0.1" pattern="[0-9\.]{7,15}">
+          <div id="lhostWarning" style="display:none;color:#f87171;font-size:.82em;margin-top:4px">
+            ⚠ LHOST requis pour le reverse shell en mode pentest/full.
+          </div>
+        </div>
+        <div>
+          <label>LPORT (listener)</label>
+          <input name="lport" value="4444" style="width:90px">
+        </div>
+      </div>
+
+      <div id="exploitAutoInfo" style="display:none" class="hint" style="color:#50ff78">
+        ✓ Exploitation activée automatiquement par le scan mode sélectionné.
+      </div>
+
+      {# ══════════════════════════════════════════════════════
+         Options avancées (collapsed)
+         ══════════════════════════════════════════════════════ #}
+      <details class="details" style="margin-top:12px">
+        <summary>⚙ Options avancées</summary>
+        <div class="row">
+          <label class="check danger"><input type="checkbox" name="vuln_nse"> Activer Nmap vuln NSE (TRÈS LENT)</label>
+          <label class="check"><input type="checkbox" name="no_vuln"> Désactiver vuln check</label>
+        </div>
+        <div class="row">
+          <div>
+            <label>Max URLs en parallèle</label>
+            <input name="max_web_urls" value="2">
+          </div>
+          <div>
+            <label>Max gobuster simultané</label>
+            <input name="max_gobuster" value="1">
+          </div>
+          <div>
+            <label>Gobuster threads (-t)</label>
+            <input name="gobuster_threads" value="15">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" name="verbose"> Verbose (last line)</label>
+      </details>
+
+      <hr class="sep">
+
+      <label class="check legal">
+        <input type="checkbox" name="authorized" required>
+        Je confirme avoir une autorisation explicite / usage lab
+      </label>
+
+      <button class="btn primary" type="submit">Lancer l'audit</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Runs</h2>
+    <div class="hint">Liste live (auto-refresh). Clique un run pour voir les logs.</div>
+
+    <div class="tablewrap">
+      <table class="table" id="runsTable">
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>Target</th>
+            <th>Status</th>
+            <th>Durée</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="runsBody">
+          <tr><td colspan="5" class="muted">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ── Hydra toggle → wordlists ──────────────────────────────
+  document.getElementById('bruteToggle').addEventListener('change', function() {
+    document.getElementById('wordlistRow').style.display = this.checked ? 'block' : 'none';
+  });
+
+  // ── Crawl → SQLmap/XSS dépendance visuelle ───────────────
+  document.getElementById('crawlToggle').addEventListener('change', function() {
+    var deps = document.getElementById('crawlDeps');
+    deps.style.opacity = this.checked ? '1' : '0.5';
+  });
+
+  // ── WP cascade ────────────────────────────────────────────
+  function syncWp() {
+    var bruteEl = document.getElementById('wpBruteToggle');
+    var step3El = document.getElementById('wpStep3');
+    var step4El = document.getElementById('wpStep4');
+
+    console.log('[WP] syncWp() called');
+    console.log('[WP] wpBruteToggle found:', bruteEl);
+    console.log('[WP] wpBruteToggle.checked:', bruteEl ? bruteEl.checked : 'NOT FOUND');
+    console.log('[WP] wpStep3 found:', step3El);
+    console.log('[WP] wpStep4 found:', step4El);
+
+    if (!bruteEl) { console.error('[WP] wpBruteToggle not found!'); return; }
+
+    var on = bruteEl.checked;
+
+    var agg = document.getElementById('wpAggressiveToggle');
+    console.log('[WP] wpAggressiveToggle found:', agg);
+    agg.disabled = !on;
+    if (!on) agg.checked = false;
+    step3El.classList.toggle('wp-step-locked', !on);
+    document.getElementById('wpArrow3').style.opacity = on ? '1' : '0.35';
+    console.log('[WP] step3 classes after toggle:', step3El.className);
+
+    var inj = document.getElementById('wpExploitCheck');
+    inj.disabled = !on;
+    if (!on) inj.checked = false;
+    step4El.classList.toggle('wp-step-locked', !on);
+    document.getElementById('wpArrow4').style.opacity = on ? '1' : '0.35';
+    console.log('[WP] step4 classes after toggle:', step4El.className);
+    console.log('[WP] done — on=', on);
+  }
+
+  // Test au chargement
+  console.log('[WP INIT] wpBruteToggle:', document.getElementById('wpBruteToggle'));
+  console.log('[WP INIT] wpStep2 onclick attr:', document.getElementById('wpStep2') ? document.getElementById('wpStep2').getAttribute('onclick') : 'NOT FOUND');
+  console.log('[WP INIT] wpStep3:', document.getElementById('wpStep3'));
+  console.log('[WP INIT] wpAggressiveToggle disabled:', document.getElementById('wpAggressiveToggle') ? document.getElementById('wpAggressiveToggle').disabled : 'NOT FOUND');
+
+  // ── Validation LHOST avant soumission ────────────────────
+  document.querySelector('form').addEventListener('submit', function(e) {
+    var mode = document.getElementById('scanModeSelect').value;
+    var lhost = document.getElementById('lhostInput').value.trim();
+    var warning = document.getElementById('lhostWarning');
+    if ((mode === 'pentest' || mode === 'full') && !lhost) {
+      warning.style.display = 'block';
+      document.getElementById('lhostInput').focus();
+      e.preventDefault();
+      return false;
+    }
+    warning.style.display = 'none';
+  });
+</script>
+
+{% endblock %}

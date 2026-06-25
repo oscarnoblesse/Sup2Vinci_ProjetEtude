@@ -1,0 +1,57 @@
+$ python3 /pentool/pentool-v0.065.py 10.48.179.255 --ui cli --authorized --workspace /runs --run-id f057405ee4 --pn --staged --scan-mode pentest --preset pro-fast --searchsploit --nuclei --enum4linux --ffuf --no-nikto --web-early --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15 --lport 4444
+# started: 2026-06-12 09:03:16
+
+
+ ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗
+ ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║
+ ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║
+ ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║
+ ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗
+ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+
+pentool v0.66 — Recon/Enum automation (detection-only)
+
+Outils présents: nmap, whatweb, nikto, gobuster, ffuf, searchsploit, nuclei, enum4linux-ng
+Wordlist introuvable: /usr/share/wordlists/dirb/common.txt -> gobuster/ffuf SKIP
+Aucune wordlist SecLists trouvée — le fuzzing web sera limité
+Target: 10.48.179.255
+Run dir: /runs/10.48.179.255/f057405ee4
+Preset: pro-fast | Staged Nmap: True | scan-mode: pentest
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (pentest, staged)
+OK  [nmap ports] (1.1s) -> /runs/10.48.179.255/f057405ee4/logs/nmap_ports_cmd.txt
+Ports ouverts détectés: 21,22,139,445
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK  [nmap enum] (24.9s) -> /runs/10.48.179.255/f057405ee4/logs/nmap_enum_cmd.txt
+21/tcp ftp vsftpd 2.0.8 or later 
+22/tcp ssh OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 Ubuntu Linux; protocol 2.0
+139/tcp netbios-ssn Samba smbd 3.X - 4.X workgroup: WORKGROUP
+445/tcp netbios-ssn Samba smbd 4.7.6-Ubuntu workgroup: WORKGROUP
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK  [searchsploit] (1.7s) -> /runs/10.48.179.255/f057405ee4/logs/searchsploit_cmd.txt
+enum4linux-ng — énumération SMB/NetBIOS (10.48.179.255)
+OK  [enum4linux-ng] (30.3s) -> /runs/10.48.179.255/f057405ee4/logs/enum4linux_cmd.txt
+Nuclei vuln scan (severity: high,critical, 1 cible(s))
+OK  [nuclei] (30.1s) -> /runs/10.48.179.255/f057405ee4/logs/nuclei_cmd.txt
+============================================================
+PHASE EXPLOITATION
+============================================================
+Exploitation — FTP anonyme
+[!] FTP WRITABLE: ['/scripts']
+[+] FTP: 3 fichier(s) téléchargé(s)
+Exploitation — SMB accès anonyme/guest
+OK  [smbclient -L] (2.6s) -> /runs/10.48.179.255/f057405ee4/logs/exploit_smb_list_cmd.txt
+FAIL [smbclient print$] (rc=1, 1.2s) -> /runs/10.48.179.255/f057405ee4/logs/exploit_smb_print__cmd.txt
+OK  [smbclient pics] (2.7s) -> /runs/10.48.179.255/f057405ee4/logs/exploit_smb_pics_cmd.txt
+OK  [smbmap] (4.0s) -> /runs/10.48.179.255/f057405ee4/logs/exploit_smbmap_cmd.txt
+Exploitation — SSH CVE-2018-15473 (OpenSSH 7.6p1 Ubuntu 4ubuntu0.3)
+OK  [ssh-userenum] (24.2s) -> /runs/10.48.179.255/f057405ee4/logs/exploit_ssh_userenum_cmd.txt
+============================================================
+PHASE POST-EXPLOITATION
+============================================================
+Post-exploit SSH: aucun credential trouvé et --lhost non fourni → SKIP
+Génération reporting
+Module reporting.py non trouvé — fallback report basique
+Report généré: /runs/10.48.179.255/f057405ee4/report.md
+Résumé: 4 services, 0 urls, 6 findings.
+Report: /runs/10.48.179.255/f057405ee4/report.md

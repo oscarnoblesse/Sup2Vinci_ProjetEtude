@@ -1,0 +1,62 @@
+$ python3 /home/kali/Desktop/pentool-v0.65/pentool-v0.065.py 192.168.190.130 --ui cli --authorized --workspace /home/kali/Desktop/pentool-v0.65/runs --run-id a13fe6ec3a --pn --staged --scan-mode quick --preset pro-fast --nuclei --enum4linux --ffuf --no-nikto --web-early --max-web-urls 2 --max-gobuster 1 --gobuster-threads 15
+# started: 2026-06-11 13:15:06
+
+╭─────────────────────────── Pentool ────────────────────────────╮
+│                                                                │
+│  ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗      │
+│  ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║      │
+│  ██████╔╝█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║      │
+│  ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║██║      │
+│  ██║     ███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝███████╗ │
+│  ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝ │
+│                                                                │
+│ pentool v0.64.1 — Recon/Enum automation                        │
+│ Detection-only (pas d'exploitation)                            │
+╰────────────────────────────────────────────────────────────────╯
+                              Pré-checks outils                               
+                                                                              
+  Outil           Rôle                                                Statut  
+ ──────────────────────────────────────────────────────────────────────────── 
+  nmap            Scan réseau + scripts NSE                           ✓ OK    
+  whatweb         Fingerprinting web                                  ✓ OK    
+  nikto           Web checks (legacy, verbose)                        ✓ OK    
+  gobuster        Bruteforce répertoires                              ✓ OK    
+  ffuf            Fuzzing web avancé (dirs + vhosts)                  ✓ OK    
+  searchsploit    Mapping Exploit-DB (références)                     ✓ OK    
+  nuclei          Vuln scanner moderne (templates communautaires)     ✓ OK    
+  enum4linux-ng   Énumération SMB/NetBIOS (shares, users, policies)   ✓ OK    
+                                                                              
+  Wordlist: ✓ raft-medium-directories.txt (244 Ko)
+Wordlist : /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
+(244 Ko)
+Target: 192.168.190.130
+Run dir: /home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a
+Preset: pro-fast | Staged Nmap: True | scan-mode: quick
+Web early activé: max_urls=2, max_gobuster=1, gobuster_t=15
+Étape 1/4 — Nmap ports discovery (quick, staged)
+OK   (1.3s) -> 
+/home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a/logs/nmap_ports
+_cmd.txt
+Ports ouverts détectés: 80,443
+Étape 2/4 — Nmap enum ciblée (ports ouverts)
+OK   (140.1s) -> 
+/home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a/logs/nmap_enum_
+cmd.txt
+                     Services détectés                     
+                                                           
+  Port   Proto   Service   Produit        Version   Extra  
+ ───────────────────────────────────────────────────────── 
+  80     tcp     http      Apache httpd                    
+  443    tcp     http      Apache httpd                    
+                                                           
+Étape 3b/4 — Searchsploit (références Exploit-DB via --nmap)
+OK   (0.3s) -> 
+/home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a/logs/searchsplo
+it_cmd.txt
+enum4linux-ng: aucun service SMB détecté -> SKIP
+OK   (14.8s) -> 
+/home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a/logs/whatweb_ht
+tps___192.168.190.130.txt
+OK   (61.4s) -> 
+/home/kali/Desktop/pentool-v0.65/runs/192.168.190.130/a13fe6ec3a/logs/whatweb_ht
+tp___192.168.190.130.txt

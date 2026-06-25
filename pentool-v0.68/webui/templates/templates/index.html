@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="grid">
+  <div class="card">
+    <h2>Lancer un audit</h2>
+
+    <form method="post" action="/run" class="form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {# Valeurs par défaut nécessaires pour les outils activés #}
+      <input type="hidden" name="pn" value="on">
+      <input type="hidden" name="staged" value="on">
+      <input type="hidden" name="web_early" value="on">
+      <input type="hidden" name="no_nikto" value="on">
+
+      {# ── ÉTAPE 1 : Cible ── #}
+      <div class="form-section">
+        <div class="form-section-title">🎯 Cible</div>
+        <label>IP ou hostname de la machine à auditer</label>
+        <input name="target" placeholder="10.10.10.10  ou  target.htb" required
+               pattern="[A-Za-z0-9_.:\ -]{1,253}"
+               title="IP ou hostname valide (pas de localhost)"
+               class="target-input">
+      </div>
+
+      {# ── ÉTAPE 2 : Mode de scan ── #}
+      <div class="form-section">
+        <div class="form-section-title">⚡ Mode de scan</div>
+        <div class="scan-modes">
+          <label class="mode-card">
+            <input type="radio" name="scan_mode" value="quick" checked>
+            <div class="mode-body">
+              <div class="mode-name">Rapide</div>
+              <div class="mode-desc">Reconnaissance uniquement — ports, services, vulnérabilités connues</div>
+              <div class="mode-time">⏱ ~5–10 min</div>
+            </div>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="scan_mode" value="pentest">
+            <div class="mode-body">
+              <div class="mode-name">Standard ★</div>
+              <div class="mode-desc">Recon + modules d'exploitation (FTP, SMB, SSH) avec confirmation à chaque étape</div>
+              <div class="mode-time">⏱ ~15–30 min</div>
+            </div>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="scan_mode" value="full">
+            <div class="mode-body">
+              <div class="mode-name">Complet</div>
+              <div class="mode-desc">Tous les ports (65535) + exploitation + post-exploitation</div>
+              <div class="mode-time">⏱ 30 min+</div>
+            </div>
+          </label>
+        </div>
+        <input type="hidden" name="preset" value="pro-fast">
+      </div>
+
+      {# ── ÉTAPE 3 : Outils de reconnaissance ── #}
+      <div class="form-section">
+        <div class="form-section-title">🔧 Outils de reconnaissance</div>
+        <div class="tools-grid">
+          <label class="check">
+            <input type="checkbox" name="searchsploit" checked>
+            <span>
+              <strong>Searchsploit</strong>
+              <small>Cherche des exploits connus pour les services détectés</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="nuclei" checked>
+            <span>
+              <strong>Nuclei</strong>
+              <small>Scanner de vulnérabilités moderne (CVE, misconfigs)</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="enum4linux" checked>
+            <span>
+              <strong>SMB Enumération</strong>
+              <small>Découverte partages Windows/Samba (enum4linux-ng)</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="ffuf" checked>
+            <span>
+              <strong>Scan Web (ffuf)</strong>
+              <small>Découverte de répertoires et fichiers cachés</small>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {# ── ÉTAPE 4 : Exploitation (opt-in, avec confirmation) ── #}
+      <div class="form-section exploit-section" id="exploitSection" style="display:none">
+        <div class="form-section-title">⚠️ Exploitation — confirmation requise à chaque étape</div>
+        <p class="exploit-warning">Ces modules tentent d'exploiter des failles. L'outil <strong>attendra votre confirmation</strong> avant chaque action.</p>
+        <div class="tools-grid">
+          <label class="check">
+            <input type="checkbox" name="exploit" checked id="chk_exploit_ftp">
+            <span>
+              <strong>FTP anonyme</strong>
+              <small>Connexion FTP sans mot de passe + téléchargement de fichiers</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="smb_exploit" checked>
+            <span>
+              <strong>SMB anonyme</strong>
+              <small>Accès aux partages SMB sans authentification</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="ssh_exploit" checked>
+            <span>
+              <strong>SSH énumération</strong>
+              <small>Détection CVE-2018-15473 (username enumeration OpenSSH)</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="exploit_brute">
+            <span>
+              <strong>Brute Force (Hydra)</strong>
+              <small>Attaque par dictionnaire sur SSH/FTP/SMB — opt-in uniquement</small>
+            </span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="wp_brute">
+            <span>
+              <strong>WordPress Brute Force</strong>
+              <small>WPScan — énumération users + brute force wordlist WordPress</small>
+            </span>
+          </label>
+          <label class="check" style="border-color:rgba(239,68,68,.35)">
+            <input type="checkbox" name="wp_exploit">
+            <span>
+              <strong>WP Theme Injection 🔥</strong>
+              <small>Post-exploitation : reverse shell via éditeur de thème (nécessite credentials WP + LHOST)</small>
+            </span>
+          </label>
+        </div>
+
+        <details class="details" style="margin-top:.8rem">
+          <summary>Options Hydra (brute force)</summary>
+          <div class="row" style="margin-top:.6rem">
+            <div>
+              <label>Wordlist utilisateurs</label>
+              <input name="userlist" placeholder="/usr/share/seclists/Usernames/top-usernames-shortlist.txt">
+            </div>
+            <div>
+              <label>Wordlist mots de passe</label>
+              <input name="passlist" placeholder="/usr/share/seclists/Passwords/Common-Credentials/top-passwords-shortlist.txt">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>LHOST (IP attaquant, pour reverse shell)</label>
+              <input name="lhost" id="lhostInput" placeholder="auto-détecté…">
+            </div>
+            <div>
+              <label>LPORT</label>
+              <input name="lport" value="4444">
+            </div>
+          </div>
+        </details>
+      </div>
+
+      {# ── Options avancées ── #}
+      <details class="details">
+        <summary>Options avancées</summary>
+        <div class="row" style="margin-top:.6rem">
+          <label class="check"><input type="checkbox" name="vuln_nse"> Nmap vuln NSE (très lent)</label>
+          <label class="check"><input type="checkbox" name="no_vuln"> Désactiver vuln check</label>
+          <label class="check"><input type="checkbox" name="no_web"> Désactiver Web enum</label>
+        </div>
+        <div class="row">
+          <div>
+            <label>URLs parallèles</label>
+            <input name="max_web_urls" value="2" style="width:4rem">
+          </div>
+          <div>
+            <label>Threads ffuf</label>
+            <input name="gobuster_threads" value="15" style="width:4rem">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" name="verbose"> Mode verbose</label>
+      </details>
+
+      <hr class="sep">
+
+      <label class="check legal">
+        <input type="checkbox" name="authorized" required>
+        Je confirme avoir une autorisation explicite d'auditer cette cible (ou usage lab)
+      </label>
+
+      <button class="btn primary" type="submit">🚀 Lancer le scan</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Scans</h2>
+    <div class="hint">Liste live (auto-refresh). Clique un run pour voir les logs en direct.</div>
+
+    <div class="tablewrap">
+      <table class="table" id="runsTable">
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>Cible</th>
+            <th>Status</th>
+            <th>Durée</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="runsBody">
+          <tr><td colspan="5" class="muted">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+// Affiche la section exploitation seulement en mode pentest/full
+document.querySelectorAll('input[name="scan_mode"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const v = document.querySelector('input[name="scan_mode"]:checked').value;
+    document.getElementById("exploitSection").style.display =
+      (v === "pentest" || v === "full") ? "" : "none";
+  });
+});
+// Auto-détection LHOST
+fetch("/api/lhost").then(r => r.json()).then(d => {
+  if (d.lhost) {
+    const el = document.getElementById("lhostInput");
+    if (el && !el.value) el.value = d.lhost;
+  }
+}).catch(() => {});
+</script>
+
+{% endblock %}
