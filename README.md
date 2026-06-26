@@ -17,32 +17,6 @@ sudo ./pentool-v0.068.py --ui web          # Interface Web
 sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pentest
 ```
 
-
-## Options exploitation
-
-```bash
---exploit              # Active la phase exploitation (pour scan-mode quick)
---no-exploit           # Désactive même si pentest/full
---exploit-brute        # Brute force Hydra (opt-in, lent)
---userlist <path>      # Wordlist usernames pour Hydra
---passlist <path>      # Wordlist passwords pour Hydra
-
----
-
-## Modes de scan
-
-| Mode | Ports scannés | Exploitation | Durée |
-|------|:---:|:---:|:---:|
-| `quick` | top 1000 | ❌ (opt-in `--exploit`) | ~1 min |
-| `pentest` | top 1000 | ✅ automatique | ~2 min |
-| `full` | 65 535 | ✅ automatique | 10+ min |
-
-```bash
---scan-mode quick    # Recon uniquement
---scan-mode pentest  # Recommandé CTF — quick + exploitation
---scan-mode full     # Scan complet + exploitation
-```
-
 ---
 ## Démarrage rapide — start.sh (recommandé)
 Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
@@ -107,7 +81,30 @@ docker run --rm -it \
   pentool:0.66 \
   python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
 ```
+## Options exploitation
 
+```bash
+--exploit              # Active la phase exploitation (pour scan-mode quick)
+--no-exploit           # Désactive même si pentest/full
+--exploit-brute        # Brute force Hydra (opt-in, lent)
+--userlist <path>      # Wordlist usernames pour Hydra
+--passlist <path>      # Wordlist passwords pour Hydra
+
+---
+
+## Modes de scan
+
+| Mode | Ports scannés | Exploitation | Durée |
+|------|:---:|:---:|:---:|
+| `quick` | top 1000 | ❌ (opt-in `--exploit`) | ~1 min |
+| `pentest` | top 1000 | ✅ automatique | ~2 min |
+| `full` | 65 535 | ✅ automatique | 10+ min |
+
+```bash
+--scan-mode quick    # Recon uniquement
+--scan-mode pentest  # Recommandé CTF — quick + exploitation
+--scan-mode full     # Scan complet + exploitation
+```
 ---
 
 ## Kill Chain couverte
