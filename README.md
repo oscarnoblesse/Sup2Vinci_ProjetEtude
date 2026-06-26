@@ -5,7 +5,7 @@ Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
 Couvre le cycle complet : **Recon → Énumération → Analyse vulnérabilités → Exploitation → Reporting**.
 
 ---
-## 🚀 Démarrage rapide — start.sh (recommandé)
+## Démarrage rapide — start.sh (recommandé)
 Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
 ```bash
 bash./start.sh                  # WebUI → http://localhost:5001
