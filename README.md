@@ -4,6 +4,30 @@ Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
 
 Couvre le cycle complet : **Recon → Énumération → Analyse vulnérabilités → Exploitation → Reporting**.
 
+
+## Installation locale (script Python)
+
+```bash
+# Permission d'exécution
+chmod +x pentool-v0.068.py
+
+# Lancement
+sudo ./pentool-v0.068.py
+sudo ./pentool-v0.068.py --ui web          # Interface Web
+sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pentest
+```
+---
+
+## Options exploitation
+
+```bash
+--exploit              # Active la phase exploitation (pour scan-mode quick)
+--no-exploit           # Désactive même si pentest/full
+--exploit-brute        # Brute force Hydra (opt-in, lent)
+--userlist <path>      # Wordlist usernames pour Hydra
+--passlist <path>      # Wordlist passwords pour Hydra
+```
+
 ---
 ## Démarrage rapide — start.sh (recommandé)
 Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
@@ -69,25 +93,6 @@ docker run --rm -it \
   python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
 ```
 
----
-
-## Installation locale (sans Docker)
-
-```bash
-# Outils système (Kali / Debian)
-sudo apt install -y nmap ffuf gobuster whatweb nikto smbclient smbmap \
-                    hydra exploitdb enum4linux-ng nuclei python2
-
-# Wordlists (recommandé)
-sudo apt install -y seclists
-
-# Python
-pip3 install flask --break-system-packages
-
-# Lancement
-python3 pentool-v0.065.py --ui web          # WebUI
-python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest
-```
 
 ---
 
@@ -126,8 +131,8 @@ python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest
 ## Structure
 
 ```
-pentool-v0.65/
-├── pentool-v0.065.py     # Script principal (CLI + WebUI + Exploitation)
+pentool-v0.68/
+├── pentool-v0.068.py     # Script principal (CLI + WebUI + Exploitation)
 ├── Dockerfile            # Image Docker (Kali Rolling)
 ├── docker-compose.yml    # Compose : webui + cli
 ├── .dockerignore
@@ -138,17 +143,6 @@ pentool-v0.65/
 └── runs/                 # Résultats des scans (gitignore recommandé)
 ```
 
----
-
-## Options exploitation
-
-```bash
---exploit              # Active la phase exploitation (pour scan-mode quick)
---no-exploit           # Désactive même si pentest/full
---exploit-brute        # Brute force Hydra (opt-in, lent)
---userlist <path>      # Wordlist usernames pour Hydra
---passlist <path>      # Wordlist passwords pour Hydra
-```
 
 ---
 
