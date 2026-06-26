@@ -17,7 +17,6 @@ sudo ./pentool-v0.068.py --ui web          # Interface Web
 sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pentest
 ```
 
----
 
 ## Options exploitation
 
