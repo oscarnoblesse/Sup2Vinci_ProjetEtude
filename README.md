@@ -2,9 +2,9 @@
 
 Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
 
-Couvre le cycle complet : **Recon → Énumération → Analyse vulnérabilités → Exploitation → Reporting**.
+Couvre le cycle complet : **Recon > Énumération > Analyse vulnérabilités > Exploitation > Reporting**.
 
-```
+
 ## Installation locale (script python)
 
 ```bash
