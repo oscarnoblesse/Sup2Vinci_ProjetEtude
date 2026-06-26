@@ -4,6 +4,46 @@ Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
 
 Couvre le cycle complet : **Recon → Énumération → Analyse vulnérabilités → Exploitation → Reporting**.
 
+```
+## Installation locale (script python)
+
+```bash
+# Permission d'exécution
+chmod +x pentool-v0.068.py
+
+# Lancement
+sudo ./pentool-v0.068.py
+sudo ./pentool-v0.068.py --ui web          # Interface Web
+sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pentest
+```
+
+---
+
+## Options exploitation
+
+```bash
+--exploit              # Active la phase exploitation (pour scan-mode quick)
+--no-exploit           # Désactive même si pentest/full
+--exploit-brute        # Brute force Hydra (opt-in, lent)
+--userlist <path>      # Wordlist usernames pour Hydra
+--passlist <path>      # Wordlist passwords pour Hydra
+
+---
+
+## Modes de scan
+
+| Mode | Ports scannés | Exploitation | Durée |
+|------|:---:|:---:|:---:|
+| `quick` | top 1000 | ❌ (opt-in `--exploit`) | ~1 min |
+| `pentest` | top 1000 | ✅ automatique | ~2 min |
+| `full` | 65 535 | ✅ automatique | 10+ min |
+
+```bash
+--scan-mode quick    # Recon uniquement
+--scan-mode pentest  # Recommandé CTF — quick + exploitation
+--scan-mode full     # Scan complet + exploitation
+```
+
 ---
 ## Démarrage rapide — start.sh (recommandé)
 Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
@@ -71,42 +111,6 @@ docker run --rm -it \
 
 ---
 
-## Installation locale (sans Docker)
-
-```bash
-# Outils système (Kali / Debian)
-sudo apt install -y nmap ffuf gobuster whatweb nikto smbclient smbmap \
-                    hydra exploitdb enum4linux-ng nuclei python2
-
-# Wordlists (recommandé)
-sudo apt install -y seclists
-
-# Python
-pip3 install flask --break-system-packages
-
-# Lancement
-python3 pentool-v0.065.py --ui web          # WebUI
-python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest
-```
-
----
-
-## Modes de scan
-
-| Mode | Ports scannés | Exploitation | Durée |
-|------|:---:|:---:|:---:|
-| `quick` | top 1000 | ❌ (opt-in `--exploit`) | ~1 min |
-| `pentest` | top 1000 | ✅ automatique | ~2 min |
-| `full` | 65 535 | ✅ automatique | 10+ min |
-
-```bash
---scan-mode quick    # Recon uniquement
---scan-mode pentest  # Recommandé CTF — quick + exploitation
---scan-mode full     # Scan complet + exploitation
-```
-
----
-
 ## Kill Chain couverte
 
 | Phase | Outils | Statut |
@@ -126,8 +130,8 @@ python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest
 ## Structure
 
 ```
-pentool-v0.65/
-├── pentool-v0.065.py     # Script principal (CLI + WebUI + Exploitation)
+pentool-v0.68/
+├── pentool-v0.068.py     # Script principal (CLI + WebUI + Exploitation)
 ├── Dockerfile            # Image Docker (Kali Rolling)
 ├── docker-compose.yml    # Compose : webui + cli
 ├── .dockerignore
@@ -140,21 +144,9 @@ pentool-v0.65/
 
 ---
 
-## Options exploitation
-
-```bash
---exploit              # Active la phase exploitation (pour scan-mode quick)
---no-exploit           # Désactive même si pentest/full
---exploit-brute        # Brute force Hydra (opt-in, lent)
---userlist <path>      # Wordlist usernames pour Hydra
---passlist <path>      # Wordlist passwords pour Hydra
-```
-
----
-
 ## Cadre légal
 
 Outil pédagogique — usage **exclusivement** sur des cibles pour lesquelles tu as une autorisation explicite :
 TryHackMe · Hack The Box · Root-Me · Labs autorisés.
 
-Le flag `--authorized` est requis pour tout lancement.
+---
