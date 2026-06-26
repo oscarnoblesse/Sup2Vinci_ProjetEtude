@@ -60,27 +60,6 @@ docker compose run --rm cli 10.10.10.1 --authorized --scan-mode quick --pn --sta
 # Mode full (65535 ports + exploitation)
 docker compose run --rm cli 10.10.10.1 --authorized --scan-mode full --pn --staged
 ```
-
-### VPN — TryHackMe / HackTheBox
-
-Si ta cible est accessible via VPN sur l'hôte, décommente `network_mode: "host"` dans `docker-compose.yml` :
-
-```yaml
-# docker-compose.yml → service webui ou cli
-network_mode: "host"
-# (supprimer les "ports:" si network_mode: host)
-```
-
-Ou directement :
-
-```bash
-docker run --rm -it \
-  --cap-add NET_RAW --cap-add NET_ADMIN \
-  --network host \
-  -v $(pwd)/runs:/runs \
-  pentool:0.66 \
-  python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
-```
 ## Options exploitation
 
 ```bash
@@ -104,6 +83,26 @@ docker run --rm -it \
 --scan-mode quick    # Recon uniquement
 --scan-mode pentest  # Recommandé CTF — quick + exploitation
 --scan-mode full     # Scan complet + exploitation
+```
+### VPN — TryHackMe / HackTheBox
+
+Si ta cible est accessible via VPN sur l'hôte, décommente `network_mode: "host"` dans `docker-compose.yml` :
+
+```yaml
+# docker-compose.yml → service webui ou cli
+network_mode: "host"
+# (supprimer les "ports:" si network_mode: host)
+```
+
+Ou directement :
+
+```bash
+docker run --rm -it \
+  --cap-add NET_RAW --cap-add NET_ADMIN \
+  --network host \
+  -v $(pwd)/runs:/runs \
+  pentool:0.66 \
+  python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
 ```
 ---
 
