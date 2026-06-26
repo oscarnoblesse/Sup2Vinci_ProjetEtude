@@ -5,8 +5,9 @@
 # ─────────────────────────────────────────────
 FROM kalilinux/kali-rolling
 
+LABEL maintainer="équipe Pentool"
 LABEL version="0.68"
-LABEL description="Pentool v0.68 - Toolbox de pentest automatisée (Recon + Exploitation + Reporting) - SUP DE VINCI 2026 - Projet M1 Cybersécurité"
+LABEL description="Pentool - Toolbox de pentest automatisée (Recon + Exploitation + Reporting)"
 
 # Évite les prompts interactifs pendant apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -45,6 +46,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nfs-common rpcbind \
     # Utils
     curl wget git ca-certificates \
+    # UI terminal Python
+    python3-rich \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 2. Mise à jour des templates Nuclei ──────
@@ -54,7 +57,8 @@ RUN nuclei -update-templates -silent || true
 RUN pip3 install --break-system-packages \
     flask \
     requests \
-    paramiko
+    paramiko \
+ && python3 -c "from rich.console import Console; print('rich OK')"
 
 # ── 4. Application ───────────────────────────
 WORKDIR /pentool

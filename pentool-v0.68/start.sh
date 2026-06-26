@@ -64,14 +64,67 @@ fi
 
 if [[ "${1:-}" == "--cli" ]]; then
   shift
+  banner
   cd "$SCRIPT_DIR"
   mkdir -p "$SCRIPT_DIR/runs"
 
-  # Vérification / build de l'image
-  if ! docker image inspect "$IMAGE_NAME" &>/dev/null 2>&1; then
-    echo -e "  ${YELLOW}[!]${NC} Image $IMAGE_NAME absente → build en cours (peut prendre quelques minutes)..."
-    docker compose build
+  # ── 1. Vérification Docker installé ───────────────────────
+  sep
+  info "Vérification de Docker..."
+  if ! command -v docker &>/dev/null; then
+    die "Docker n'est pas installé. Télécharge Docker Desktop : https://www.docker.com/products/docker-desktop"
   fi
+  ok "Docker trouvé : $(docker --version)"
+
+  # ── 2. Démarrage du daemon Docker si nécessaire ───────────
+  if ! docker info &>/dev/null 2>&1; then
+    warn "Le daemon Docker n'est pas démarré. Tentative de démarrage..."
+
+    OS="$(uname -s)"
+    case "$OS" in
+      Darwin)
+        info "macOS détecté → ouverture de Docker Desktop..."
+        open -a Docker 2>/dev/null || die "Impossible d'ouvrir Docker Desktop. Lance-le manuellement."
+        ;;
+      Linux)
+        info "Linux détecté → démarrage du service Docker..."
+        if command -v systemctl &>/dev/null; then
+          sudo systemctl start docker || die "Impossible de démarrer Docker. Lance : sudo systemctl start docker"
+        else
+          sudo service docker start || die "Impossible de démarrer Docker. Lance : sudo service docker start"
+        fi
+        ;;
+      *)
+        die "OS non supporté : $OS"
+        ;;
+    esac
+
+    info "En attente du démarrage de Docker"
+    TRIES=0
+    until docker info &>/dev/null 2>&1; do
+      sleep 2
+      TRIES=$((TRIES + 1))
+      printf "."
+      [[ $TRIES -ge 30 ]] && echo "" && die "Docker n'a pas démarré après 60 secondes. Vérifie Docker Desktop."
+    done
+    echo ""
+    ok "Docker est prêt."
+  else
+    ok "Docker daemon actif."
+  fi
+
+  # ── 3. Vérification / build de l'image ────────────────────
+  sep
+  if ! docker image inspect "$IMAGE_NAME" &>/dev/null 2>&1; then
+    info "Image $IMAGE_NAME absente → build en cours..."
+    info "Première installation : le build peut prendre 5-10 minutes (téléchargement Kali + outils pentest)."
+    echo ""
+    docker compose build
+    ok "Image ${IMAGE_NAME} construite."
+  else
+    ok "Image ${IMAGE_NAME} déjà présente."
+  fi
+  sep
 
   # Le code est embarqué dans l'image (COPY . . dans le Dockerfile).
   # On monte uniquement ./runs pour récupérer les résultats sur l'hôte.
@@ -91,6 +144,19 @@ if [[ "${1:-}" == "--cli" ]]; then
   # Ctrl-C sur le menu (ou deux fois rapidement) quitte le conteneur.
   LOOP_CMD="trap 'echo \"\"; echo \"[pentool] Bye!\"; exit 0' INT; while true; do $LAUNCH_CMD || true; echo ''; echo '[pentool] Scan terminé — relance dans 1s (Ctrl-C sur ce message pour quitter)'; sleep 3; done"
 
+  # Transmet la taille et le type du terminal hôte au conteneur
+  # pour que Rich/curses ait le même rendu qu'en local.
+  _COLS=$(tput cols 2>/dev/null || echo 120)
+  _LINES=$(tput lines 2>/dev/null || echo 40)
+  _TERM="${TERM:-xterm-256color}"
+
+  # Détecte le color system : truecolor si COLORTERM le dit, sinon 256
+  if [[ "${COLORTERM:-}" == "truecolor" || "${COLORTERM:-}" == "24bit" ]]; then
+    _PENTOOL_COLOR="truecolor"
+  else
+    _PENTOOL_COLOR="256"
+  fi
+
   exec docker run --rm -it \
     --cap-add NET_RAW \
     --cap-add NET_ADMIN \
@@ -99,6 +165,11 @@ if [[ "${1:-}" == "--cli" ]]; then
     -w /pentool \
     -e PYTHONUNBUFFERED=1 \
     -e PENTOOL_WORKSPACE=/runs \
+    -e TERM="$_TERM" \
+    -e COLORTERM="${COLORTERM:-}" \
+    -e COLUMNS="$_COLS" \
+    -e LINES="$_LINES" \
+    -e _PENTOOL_COLOR="$_PENTOOL_COLOR" \
     --entrypoint bash \
     "$IMAGE_NAME" \
     -i -c "$LOOP_CMD"
