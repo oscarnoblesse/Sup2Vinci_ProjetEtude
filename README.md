@@ -1,107 +1,93 @@
 # Pentool v0.68
 
-Toolbox pentest automatisée — SUP DE VINCI 2026 — Projet M1 Cybersécurité
+Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
 
 Couvre le cycle complet : **Recon → Énumération → Analyse vulnérabilités → Exploitation → Reporting**.
 
 ---
+## 🚀 Démarrage rapide — start.sh (recommandé)
+Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
+```bash
+bash./start.sh                  # WebUI → http://localhost:5001
+./start.sh --cli            # CLI wizard interactif
+./start.sh --build          # Force le rebuild de l'image
+./start.sh --stop           # Arrête les conteneurs
+./start.sh --logs           # Logs WebUI en direct
+```
+Prérequis : Docker Desktop. Si absent, start.sh propose de l'installer automatiquement (macOS/Linux).
 
-## 🚀 Lancement — 3 méthodes
+## 🐳 Démarrage rapide — Docker (recommandé)
 
-### Méthode 1 : `start.sh` (recommandée)
+Docker embarque tous les outils (nmap, ffuf, smbclient, hydra, nuclei, exploitdb, python2…) sans rien installer sur ta machine.
 
-Le script gère tout automatiquement : vérifie Docker, build l'image si absente, lance l'application.
+### Build
 
 ```bash
-# WebUI (interface graphique) → http://localhost:5001
-./start.sh
-
-# CLI — wizard interactif (demande la cible au démarrage)
-./start.sh --cli
-
-# CLI — scan direct sans wizard
-./start.sh --cli 10.10.10.1 --authorized --scan-mode pentest --pn --staged
-
-# Forcer le rebuild de l'image (après modification du code)
-./start.sh --build
-
-# Arrêter les conteneurs
-./start.sh --stop
-
-# Voir les logs WebUI en direct
-./start.sh --logs
+docker build -t pentool:0.66 .
 ```
 
-> **Prérequis** : Docker Desktop installé (le script tente de le démarrer automatiquement si ce n'est pas le cas).
-
----
-
-### Méthode 2 : Docker manuel
+### WebUI (interface graphique)
 
 ```bash
-# Build
-docker compose build
-
-# WebUI → http://localhost:5001
-docker compose up -d webui
-
-# CLI — wizard interactif
-docker run --rm -it \
-  --cap-add NET_RAW --cap-add NET_ADMIN \
-  --network host \
-  -v $(pwd)/runs:/runs \
-  -e PYTHONUNBUFFERED=1 \
-  -e TERM=xterm-256color \
-  pentool:0.68 \
-  python3 pentool-v0.068.py
-
-# CLI — scan direct
-docker run --rm -it \
-  --cap-add NET_RAW --cap-add NET_ADMIN \
-  --network host \
-  -v $(pwd)/runs:/runs \
-  -e PYTHONUNBUFFERED=1 \
-  -e TERM=xterm-256color \
-  pentool:0.68 \
-  python3 pentool-v0.068.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
-
-# Arrêter
-docker compose down
+docker compose up webui
+# → http://localhost:5000
 ```
 
 Les résultats sont sauvegardés dans `./runs/` sur ta machine.
 
+### CLI — scan direct
+
+```bash
+# Mode pentest (quick + exploitation auto)
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode pentest --pn --staged
+
+# Mode quick (recon seul)
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode quick --pn --staged
+
+# Mode full (65535 ports + exploitation)
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode full --pn --staged
+```
+
 ### VPN — TryHackMe / HackTheBox
 
-Les trois méthodes utilisent `--network host` par défaut, ce qui permet d'accéder aux cibles VPN depuis l'hôte. Si ce n'est pas le cas, vérifie que `network_mode: "host"` est actif dans `docker-compose.yml`.
+Si ta cible est accessible via VPN sur l'hôte, décommente `network_mode: "host"` dans `docker-compose.yml` :
+
+```yaml
+# docker-compose.yml → service webui ou cli
+network_mode: "host"
+# (supprimer les "ports:" si network_mode: host)
+```
+
+Ou directement :
+
+```bash
+docker run --rm -it \
+  --cap-add NET_RAW --cap-add NET_ADMIN \
+  --network host \
+  -v $(pwd)/runs:/runs \
+  pentool:0.66 \
+  python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
+```
 
 ---
 
-### Méthode 3 : Local (sans Docker, Kali / Debian)
+## Installation locale (sans Docker)
 
 ```bash
-# Outils système
+# Outils système (Kali / Debian)
 sudo apt install -y nmap ffuf gobuster whatweb nikto smbclient smbmap \
-                    hydra exploitdb enum4linux-ng nuclei sqlmap wpscan \
-                    nfs-common rpcbind python2
+                    hydra exploitdb enum4linux-ng nuclei python2
 
 # Wordlists (recommandé)
 sudo apt install -y seclists
 
-# Dépendances Python
-pip3 install flask requests paramiko rich --break-system-packages
+# Python
+pip3 install flask --break-system-packages
 
-# WebUI
-python3 pentool-v0.068.py --ui web
-
-# CLI — wizard interactif
-python3 pentool-v0.068.py
-
-# CLI — scan direct
-python3 pentool-v0.068.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
+# Lancement
+python3 pentool-v0.065.py --ui web          # WebUI
+python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest
 ```
-
-> ⚠️ Sans Docker, les outils doivent être installés manuellement. Docker est recommandé pour un environnement clé-en-main.
 
 ---
 
@@ -140,9 +126,8 @@ python3 pentool-v0.068.py 10.10.10.1 --authorized --scan-mode pentest --pn --sta
 ## Structure
 
 ```
-pentool-v0.68/
-├── pentool-v0.068.py     # Script principal (CLI + WebUI + Exploitation)
-├── start.sh              # Script de démarrage tout-en-un
+pentool-v0.65/
+├── pentool-v0.065.py     # Script principal (CLI + WebUI + Exploitation)
 ├── Dockerfile            # Image Docker (Kali Rolling)
 ├── docker-compose.yml    # Compose : webui + cli
 ├── .dockerignore
@@ -173,4 +158,3 @@ Outil pédagogique — usage **exclusivement** sur des cibles pour lesquelles tu
 TryHackMe · Hack The Box · Root-Me · Labs autorisés.
 
 Le flag `--authorized` est requis pour tout lancement.
-
