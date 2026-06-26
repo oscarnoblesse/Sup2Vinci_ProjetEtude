@@ -21,7 +21,7 @@ sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pen
 ## Démarrage rapide — start.sh (recommandé)
 Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
 ```bash
-bash./start.sh                  # WebUI → http://localhost:5001
+./start.sh                  # WebUI → http://localhost:5001
 ./start.sh --cli            # CLI wizard interactif
 ./start.sh --build          # Force le rebuild de l'image
 ./start.sh --stop           # Arrête les conteneurs
