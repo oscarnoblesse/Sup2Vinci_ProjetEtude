@@ -68,7 +68,7 @@ import time
 import threading
 import traceback
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import Dict, List, Optional, Tuple, Callable
@@ -89,7 +89,12 @@ try:
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
     from rich import box
 
-    console = Console()
+    # force_terminal + color_system="256" : garantit couleurs + formatage
+    # quel que soit l'environnement (Docker, CI, SSH…).
+    # COLUMNS transmis par start.sh donne la bonne largeur.
+    _term_width = int(os.environ.get("COLUMNS", 0)) or None
+    _color_sys  = os.environ.get("_PENTOOL_COLOR", "256")  # "truecolor" si dispo
+    console = Console(force_terminal=True, color_system=_color_sys, width=_term_width)
     RICH = True
 except Exception:
     console = None
@@ -7082,16 +7087,15 @@ def show_banner() -> None:
         console.print(
             Panel.fit(
                 f"[bold magenta]{ASCII}[/bold magenta]\n"
-                f"[bold]{APP_NAME} v{VERSION} - Toolbox de pentest automatisée (Recon + Exploitation + Reporting)[/bold]\n"
-                f"[dim]SUP DE VINCI 2026 - Projet M1 Cybersécurité[/dim]",
+                f"[bold]{APP_NAME} v{VERSION} — Recon/Enum automation[/bold]\n"
+                f"[dim]Detection-only (pas d'exploitation)[/dim]",
                 title="Pentool",
                 border_style="magenta",
             )
         )
     else:
         print(ASCII)
-        print(f"{APP_NAME} v{VERSION} - Toolbox de pentest automatisée (Recon + Exploitation + Reporting)")
-        print(f"SUP DE VINCI 2026 - Projet M1 Cybersécurité\n")
+        print(f"{APP_NAME} v{VERSION} — Recon/Enum automation (detection-only)\n")
 
 def show_services_table(services: List[dict]) -> None:
     if not services:
@@ -7194,7 +7198,7 @@ def show_config_summary(cfg: Config) -> bool:
         table.add_row("Phase exploitation", exploit_label)
         # Initial access
         if cfg.lhost:
-            table.add_row("LHOST (reverse shell)", f"[green]{cfg.lhost}:{cfg.lport}[/green] [dim](auto-détecté)[/dim]" if not args.lhost else f"[green]{cfg.lhost}:{cfg.lport}[/green]")
+            table.add_row("LHOST (reverse shell)", f"[green]{cfg.lhost}:{cfg.lport}[/green]")
         elif cfg.run_exploit:
             table.add_row("LHOST (reverse shell)", "[yellow]non détecté — initial access désactivé[/yellow]")
         # Wordlist
@@ -7598,8 +7602,7 @@ def lhost_gate(cfg: Config) -> Config:
     3. Vérifier la validité de l'IP sauvegardée
     4. Si toujours invalide → tenter auto-détection + prompt CLI
     """
-    # Post-exploit ne peut pas tourner sans exploit → lhost requis seulement si exploit actif
-    needs_lhost = cfg.run_exploit
+    needs_lhost = cfg.run_postexploit or cfg.run_exploit
     if not needs_lhost:
         return cfg
 
@@ -7620,7 +7623,7 @@ def lhost_gate(cfg: Config) -> Config:
     if saved and _re.match(ip_pattern, saved):
         if _verify_lhost(saved):
             ok(f"LHOST sauvegardé réutilisé : `{saved}` (interface active ✓)")
-            return cfg._replace(lhost=saved)
+            return replace(cfg, lhost=saved)
         else:
             warn(f"LHOST sauvegardé `{saved}` n'est plus actif (VPN déconnecté ?)")
 
@@ -7629,7 +7632,7 @@ def lhost_gate(cfg: Config) -> Config:
     if detected:
         info(f"LHOST auto-détecté : `{detected}`")
         _save_lhost(cfg.workspace, detected)
-        return cfg._replace(lhost=detected)
+        return replace(cfg, lhost=detected)
 
     # ── Cas 4 : prompt CLI ────────────────────────────────────────────────────
     warn("LHOST introuvable — le reverse shell sera désactivé sans IP valide.")
@@ -7649,7 +7652,7 @@ def lhost_gate(cfg: Config) -> Config:
             if answer and _re.match(ip_pattern, answer):
                 _save_lhost(cfg.workspace, answer)
                 ok(f"LHOST défini et sauvegardé : {answer}")
-                return cfg._replace(lhost=answer)
+                return replace(cfg, lhost=answer)
             else:
                 warn("LHOST ignoré — initial access désactivé.")
         except (EOFError, KeyboardInterrupt):
@@ -7745,7 +7748,7 @@ def main() -> None:
     if cfg.run_wp_brute:                 _enabled += ["st_wpscan", "st_wordpress"]
     if cfg.run_wp_exploit:               _enabled.append("st_wpexploit")
     if cfg.run_exploit:                  _enabled += ["st_exploit", "st_ftp", "st_ssh"]
-    if cfg.run_exploit and cfg.run_postexploit: _enabled.append("st_postexploit")
+    if cfg.run_postexploit:              _enabled.append("st_postexploit")
     try:
         (logs_dir / "_config.json").write_text(
             json.dumps({"enabled_stages": _enabled}, ensure_ascii=False),
