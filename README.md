@@ -12,7 +12,7 @@ Couvre le cycle complet :
 # Installation locale (Python)
 
 ```bash
-# Donner les permissions
+# Attribuer la permission d'éxécution
 chmod +x pentool-v0.068.py
 
 # Lancement
