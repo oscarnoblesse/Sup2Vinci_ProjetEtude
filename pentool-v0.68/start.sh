@@ -47,6 +47,126 @@ err()  { echo -e "  ${RED}[✗]${NC} $*"; }
 die()  { err "$*"; exit 1; }
 sep()  { echo -e "  ${CYAN}────────────────────────────────────────${NC}"; }
 
+# Installe Docker automatiquement selon l'OS
+propose_docker_install() {
+  err "Docker n'est pas installé sur cette machine."
+  echo ""
+  echo -e "  Docker est nécessaire pour lancer Pentool."
+  echo -e "  ${BOLD}Voulez-vous l'installer automatiquement maintenant ?${NC}"
+  echo ""
+  printf "  [o/N] → "
+  read -r REPLY </dev/tty
+  echo ""
+
+  if [[ ! "$REPLY" =~ ^[oOyY]$ ]]; then
+    info "Installation annulée."
+    info "Installe Docker manuellement : https://www.docker.com/products/docker-desktop"
+    exit 1
+  fi
+
+  OS="$(uname -s)"
+  ARCH="$(uname -m)"
+
+  case "$OS" in
+
+    Darwin)
+      # ── macOS ──────────────────────────────────────────────
+      if command -v brew &>/dev/null; then
+        info "Homebrew détecté → installation via brew..."
+        brew install --cask docker
+        ok "Docker Desktop installé."
+        info "Ouverture de Docker Desktop..."
+        open -a Docker 2>/dev/null || true
+
+      else
+        # Pas de brew → téléchargement du .dmg officiel
+        info "Homebrew absent → téléchargement du .dmg Docker Desktop..."
+        if [[ "$ARCH" == "arm64" ]]; then
+          DMG_URL="https://desktop.docker.com/mac/main/arm64/Docker.dmg"
+        else
+          DMG_URL="https://desktop.docker.com/mac/main/amd64/Docker.dmg"
+        fi
+        DMG_PATH="/tmp/Docker.dmg"
+        info "Téléchargement depuis $DMG_URL (peut prendre quelques minutes)..."
+        curl -L --progress-bar "$DMG_URL" -o "$DMG_PATH" || die "Échec du téléchargement."
+        info "Montage du .dmg..."
+        hdiutil attach "$DMG_PATH" -quiet
+        info "Copie de Docker.app dans /Applications..."
+        cp -R /Volumes/Docker/Docker.app /Applications/ || die "Impossible de copier Docker.app."
+        hdiutil detach /Volumes/Docker -quiet 2>/dev/null || true
+        rm -f "$DMG_PATH"
+        ok "Docker Desktop installé dans /Applications."
+        info "Ouverture de Docker Desktop..."
+        open -a Docker 2>/dev/null || true
+      fi
+      ;;
+
+    Linux)
+      # ── Linux ───────────────────────────────────────────────
+      if ! command -v curl &>/dev/null; then
+        die "curl est requis pour télécharger Docker. Lance : sudo apt install curl"
+      fi
+      info "Installation via le script officiel Docker (get.docker.com)..."
+      curl -fsSL https://get.docker.com | sudo sh || die "Échec de l'installation Docker."
+      ok "Docker Engine installé."
+
+      # Ajoute l'utilisateur au groupe docker (évite sudo à chaque commande)
+      if id -nG "$USER" | grep -qw docker; then
+        ok "Utilisateur $USER déjà dans le groupe docker."
+      else
+        info "Ajout de $USER au groupe docker..."
+        sudo usermod -aG docker "$USER"
+        warn "Groupe docker appliqué — il faudra te reconnecter (ou lancer : newgrp docker) pour l'effet immédiat."
+      fi
+
+      # Démarrage du service
+      info "Démarrage du service Docker..."
+      if command -v systemctl &>/dev/null; then
+        sudo systemctl enable docker --now || die "Impossible de démarrer Docker."
+      else
+        sudo service docker start || die "Impossible de démarrer Docker."
+      fi
+      ok "Docker Engine démarré."
+      ;;
+
+    MINGW*|MSYS*|CYGWIN*)
+      # ── Windows (Git Bash / MSYS2 / Cygwin) ────────────────
+      echo ""
+      err "Windows détecté — installation automatique non supportée."
+      echo ""
+      echo -e "  Installe ${BOLD}Docker Desktop pour Windows${NC} manuellement :"
+      echo -e "  ${CYAN}https://www.docker.com/products/docker-desktop${NC}"
+      echo ""
+      echo -e "  Une fois installé, démarre Docker Desktop puis relance : ${YELLOW}./start.sh${NC}"
+      echo ""
+      exit 1
+      ;;
+
+    *)
+      die "OS non supporté : $OS. Installe Docker manuellement : https://docs.docker.com/get-docker/"
+      ;;
+  esac
+
+  echo ""
+  # Attend que Docker soit prêt avant de continuer
+  info "En attente que Docker soit prêt"
+  TRIES=0
+  until docker info &>/dev/null 2>&1; do
+    sleep 2
+    TRIES=$((TRIES + 1))
+    printf "."
+    if [[ $TRIES -ge 30 ]]; then
+      echo ""
+      warn "Docker installé mais pas encore démarré."
+      info "Lance Docker Desktop manuellement puis relance : ${YELLOW}./start.sh${NC}"
+      exit 1
+    fi
+  done
+  echo ""
+  ok "Docker est prêt — poursuite du lancement..."
+  echo ""
+}
+
 # ── Commandes rapides ────────────────────────────────────────
 if [[ "${1:-}" == "--stop" ]]; then
   banner
@@ -72,7 +192,7 @@ if [[ "${1:-}" == "--cli" ]]; then
   sep
   info "Vérification de Docker..."
   if ! command -v docker &>/dev/null; then
-    die "Docker n'est pas installé. Télécharge Docker Desktop : https://www.docker.com/products/docker-desktop"
+    propose_docker_install
   fi
   ok "Docker trouvé : $(docker --version)"
 
@@ -184,7 +304,7 @@ FORCE_BUILD=false
 sep
 info "Vérification de Docker..."
 if ! command -v docker &>/dev/null; then
-  die "Docker n'est pas installé. Télécharge Docker Desktop : https://www.docker.com/products/docker-desktop"
+  propose_docker_install
 fi
 ok "Docker trouvé : $(docker --version)"
 
