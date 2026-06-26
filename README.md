@@ -16,7 +16,7 @@ bash./start.sh                  # WebUI → http://localhost:5001
 ```
 Prérequis : Docker Desktop. Si absent, start.sh propose de l'installer automatiquement (macOS/Linux).
 
-## 🐳 Démarrage rapide — Docker (recommandé)
+## 🐳 Démarrage rapide — Docker
 
 Docker embarque tous les outils (nmap, ffuf, smbclient, hydra, nuclei, exploitdb, python2…) sans rien installer sur ta machine.
 
