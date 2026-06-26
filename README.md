@@ -1,147 +1,231 @@
 # Pentool v0.68
 
-Toolbox pentest automatisée  SUP DE VINCI 2026  Projet M1 Cybersécurité
+**Toolbox de pentest automatisée**
+**SUP DE VINCI — M1 Cybersécurité (Projet 2026)**
 
-Couvre le cycle complet : **Recon > Énumération > Analyse vulnérabilités > Exploitation > Reporting**.
+Couvre le cycle complet :
 
+**Reconnaissance → Énumération → Analyse de vulnérabilités → Exploitation → Reporting**
 
-## Installation locale (script python)
+---
+
+# Installation locale (Python)
 
 ```bash
-# Permission d'exécution
+# Donner les permissions
 chmod +x pentool-v0.068.py
 
 # Lancement
 sudo ./pentool-v0.068.py
-sudo ./pentool-v0.068.py --ui web          # Interface Web
-sudo ./pentool-v0.068.p <IP_cible> --authorized --scan-mode pentest # Preset pentest
+
+# Interface Web
+sudo ./pentool-v0.068.py --ui web
+
+# Scan pentest
+sudo ./pentool-v0.068.py <IP_cible> --authorized --scan-mode pentest
 ```
 
 ---
-## Démarrage rapide — start.sh (recommandé)
-Le script gère tout automatiquement : vérifie Docker, l'installe si absent, build l'image si nécessaire, puis lance l'application.
-```bash
-./start.sh                  # WebUI → http://localhost:5001
-./start.sh --cli            # CLI wizard interactif
-./start.sh --build          # Force le rebuild de l'image
-./start.sh --stop           # Arrête les conteneurs
-./start.sh --logs           # Logs WebUI en direct
-```
-Prérequis : Docker Desktop. Si absent, start.sh propose de l'installer automatiquement (macOS/Linux).
 
-## 🐳 Démarrage rapide — Docker
-
-Docker embarque tous les outils (nmap, ffuf, smbclient, hydra, nuclei, exploitdb, python2…) sans rien installer sur ta machine.
-
-### Build
+# Options d'exploitation
 
 ```bash
-docker build -t pentool:0.66 .
+--exploit              # Active l'exploitation (mode quick)
+--no-exploit           # Désactive l'exploitation
+--exploit-brute        # Hydra (opt-in)
+--userlist <path>      # Wordlist utilisateurs
+--passlist <path>      # Wordlist mots de passe
 ```
 
-### WebUI (interface graphique)
+---
+
+# Modes de scan
+
+| Mode      |   Ports  |      Exploitation      |  Durée  |
+| --------- | :------: | :--------------------: | :-----: |
+| `quick`   | Top 1000 | ❌ (option `--exploit`) |  ~1 min |
+| `pentest` | Top 1000 |      ✅ Automatique     |  ~2 min |
+| `full`    |  65 535  |      ✅ Automatique     | 10+ min |
+
+```bash
+--scan-mode quick
+--scan-mode pentest
+--scan-mode full
+```
+
+---
+
+# Démarrage rapide (Docker) — start.sh (recommandé)
+
+Le script gère automatiquement :
+
+* Vérification de Docker
+* Installation de Docker si nécessaire
+* Build de l'image
+* Lancement de l'application
+
+```bash
+./start.sh
+```
+
+Interface Web :
+
+```
+http://localhost:5001
+```
+
+Autres options :
+
+```bash
+./start.sh --cli
+./start.sh --build
+./start.sh --stop
+./start.sh --logs
+```
+
+Prérequis :
+
+* Docker Desktop (Windows/macOS)
+* Docker Engine (Linux)
+
+---
+
+# 🐳 Docker
+
+Docker embarque tous les outils :
+
+* Nmap
+* ffuf
+* smbclient
+* Hydra
+* Nuclei
+* Searchsploit
+* Python 2
+* Python 3
+
+## Build
+
+```bash
+docker build -t pentool:0.68 .
+```
+
+## Interface Web
 
 ```bash
 docker compose up webui
-# → http://localhost:5000
 ```
 
-Les résultats sont sauvegardés dans `./runs/` sur ta machine.
+Puis ouvrir :
 
-### CLI — scan direct
-
-```bash
-# Mode pentest (quick + exploitation auto)
-docker compose run --rm cli 10.10.10.1 --authorized --scan-mode pentest --pn --staged
-
-# Mode quick (recon seul)
-docker compose run --rm cli 10.10.10.1 --authorized --scan-mode quick --pn --staged
-
-# Mode full (65535 ports + exploitation)
-docker compose run --rm cli 10.10.10.1 --authorized --scan-mode full --pn --staged
 ```
-## Options exploitation
+http://localhost:5000
+```
 
-```bash
---exploit              # Active la phase exploitation (pour scan-mode quick)
---no-exploit           # Désactive même si pentest/full
---exploit-brute        # Brute force Hydra (opt-in, lent)
---userlist <path>      # Wordlist usernames pour Hydra
---passlist <path>      # Wordlist passwords pour Hydra
+Les résultats sont sauvegardés dans :
+
+```
+runs/
+```
 
 ---
 
-## Modes de scan
+## CLI
 
-| Mode | Ports scannés | Exploitation | Durée |
-|------|:---:|:---:|:---:|
-| `quick` | top 1000 | ❌ (opt-in `--exploit`) | ~1 min |
-| `pentest` | top 1000 | ✅ automatique | ~2 min |
-| `full` | 65 535 | ✅ automatique | 10+ min |
+### Pentest
 
 ```bash
---scan-mode quick    # Recon uniquement
---scan-mode pentest  # Recommandé CTF — quick + exploitation
---scan-mode full     # Scan complet + exploitation
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode pentest --pn --staged
 ```
-### VPN — TryHackMe / HackTheBox
 
-Si ta cible est accessible via VPN sur l'hôte, décommente `network_mode: "host"` dans `docker-compose.yml` :
+### Quick
+
+```bash
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode quick --pn --staged
+```
+
+### Full
+
+```bash
+docker compose run --rm cli 10.10.10.1 --authorized --scan-mode full --pn --staged
+```
+
+---
+
+# VPN (Hack The Box / TryHackMe)
+
+Décommenter dans `docker-compose.yml` :
 
 ```yaml
-# docker-compose.yml → service webui ou cli
 network_mode: "host"
-# (supprimer les "ports:" si network_mode: host)
 ```
 
-Ou directement :
+Supprimer ensuite :
+
+```yaml
+ports:
+```
+
+Ou lancer directement :
 
 ```bash
 docker run --rm -it \
-  --cap-add NET_RAW --cap-add NET_ADMIN \
+  --cap-add NET_RAW \
+  --cap-add NET_ADMIN \
   --network host \
   -v $(pwd)/runs:/runs \
-  pentool:0.66 \
-  python3 pentool-v0.065.py 10.10.10.1 --authorized --scan-mode pentest --pn --staged
+  pentool:0.68 \
+  python3 pentool-v0.068.py 10.10.10.1 \
+  --authorized \
+  --scan-mode pentest \
+  --pn \
+  --staged
 ```
----
-
-## Kill Chain couverte
-
-| Phase | Outils | Statut |
-|---|---|:---:|
-| 1 — Reconnaissance | Nmap ports discovery (staged) | ✅ |
-| 2 — Scanning & Enum | Nmap -sV -sC, enum4linux-ng | ✅ |
-| 3 — Analyse vulnérabilités | NSE vuln, Searchsploit, Nuclei | ✅ |
-| 4 — Web Analysis | WhatWeb, ffuf/Gobuster, Nikto | ✅ |
-| 5 — Exploitation FTP | FTP anonyme → listing + download + write test | ✅ |
-| 5 — Exploitation SMB | smbclient + smbmap → shares + permissions | ✅ |
-| 5 — Exploitation SSH | Détection CVE-2018-15473 (OpenSSH < 7.7) | ✅ |
-| 5 — Brute Force | Hydra FTP/SSH (opt-in `--exploit-brute`) | ✅ |
-| 6 — Reporting | HTML/MD/JSON auto-contenu | ✅ |
 
 ---
 
-## Structure
+# Kill Chain couverte
 
-```
+| Phase                      | Fonction                               | Statut |
+| -------------------------- | -------------------------------------- | :----: |
+| Reconnaissance             | Nmap (Discovery)                       |    ✅   |
+| Énumération                | Nmap `-sV -sC`, enum4linux-ng          |    ✅   |
+| Analyse des vulnérabilités | NSE, Searchsploit, Nuclei              |    ✅   |
+| Analyse Web                | WhatWeb, ffuf, Gobuster, Nikto         |    ✅   |
+| Exploitation FTP           | Anonymous Login, Download, Upload Test |    ✅   |
+| Exploitation SMB           | smbclient, smbmap                      |    ✅   |
+| Exploitation SSH           | Détection CVE-2018-15473               |    ✅   |
+| Brute Force                | Hydra (optionnel)                      |    ✅   |
+| Reporting                  | HTML / Markdown / JSON                 |    ✅   |
+
+---
+
+# Structure du projet
+
+```text
 pentool-v0.68/
-├── pentool-v0.068.py     # Script principal (CLI + WebUI + Exploitation)
-├── Dockerfile            # Image Docker (Kali Rolling)
-├── docker-compose.yml    # Compose : webui + cli
+├── pentool-v0.068.py
+├── Dockerfile
+├── docker-compose.yml
 ├── .dockerignore
 ├── webui/
-│   ├── app.py            # Flask backend (CSRF, CSP, validation)
-│   └── templates/        # Jinja2 templates
-├── static/               # CSS + JS WebUI
-└── runs/                 # Résultats des scans (gitignore recommandé)
+│   ├── app.py
+│   └── templates/
+├── static/
+└── runs/
 ```
 
 ---
 
-## Cadre légal
+# Cadre légal
 
-Outil pédagogique — usage **exclusivement** sur des cibles pour lesquelles tu as une autorisation explicite :
-TryHackMe · Hack The Box · Root-Me · Labs autorisés.
+ Outil pédagogique.
 
----
+À utiliser **uniquement** sur des systèmes pour lesquels tu disposes d'une autorisation explicite.
+
+Exemples :
+
+* TryHackMe
+* Hack The Box
+* Root-Me
+* Laboratoires personnels
+* Environnements autorisés
