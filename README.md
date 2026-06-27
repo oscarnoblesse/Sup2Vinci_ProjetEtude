@@ -6,7 +6,40 @@
 Couvre le cycle complet :
 
 **Reconnaissance → Énumération → Analyse de vulnérabilités → Exploitation → Reporting**
+---
 
+# Démarrage rapide (Docker) — start.sh (recommandé)
+
+Le script gère automatiquement :
+
+* Vérification de Docker
+* Installation de Docker si nécessaire
+* Build de l'image
+* Lancement de l'application
+
+```bash
+./start.sh
+```
+
+Interface Web :
+
+```
+http://localhost:5001
+```
+
+Autres options :
+
+```bash
+./start.sh --cli
+./start.sh --build
+./start.sh --stop
+./start.sh --logs
+```
+
+Prérequis :
+
+* Docker Desktop (Windows/macOS)
+* Docker Engine (Linux)
 ---
 
 # Installation locale (Python)
@@ -52,41 +85,6 @@ sudo ./pentool-v0.068.py <IP_cible> --authorized --scan-mode pentest
 --scan-mode pentest
 --scan-mode full
 ```
-
----
-
-# Démarrage rapide (Docker) — start.sh (recommandé)
-
-Le script gère automatiquement :
-
-* Vérification de Docker
-* Installation de Docker si nécessaire
-* Build de l'image
-* Lancement de l'application
-
-```bash
-./start.sh
-```
-
-Interface Web :
-
-```
-http://localhost:5001
-```
-
-Autres options :
-
-```bash
-./start.sh --cli
-./start.sh --build
-./start.sh --stop
-./start.sh --logs
-```
-
-Prérequis :
-
-* Docker Desktop (Windows/macOS)
-* Docker Engine (Linux)
 
 ---
 
